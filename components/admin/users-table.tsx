@@ -221,30 +221,33 @@ export function UsersTable({ users: initialUsers, clients, roles, userRole = "AD
   }
 
   const handleDelete = async () => {
-    if (!deleteId) return
-    setIsLoading(true)
+  if (!deleteId) return
+  setIsLoading(true)
 
-    try {
-      const res = await fetch(`/api/admin/users/${deleteId}`, {
-        method: "DELETE",
-      })
+  try {
+    const res = await fetch(`/api/admin/users/${deleteId}`, {
+      method: "DELETE",
+    })
 
-      const data = await res.json()
+    // 👇 Lê como texto primeiro (seguro)
+    const text = await res.text()
+    const data = text ? JSON.parse(text) : null
 
-      if (res.ok) {
-        setUsers(users.filter((u) => u.id !== deleteId))
-        toast.success("Usuario excluido com sucesso")
-      } else {
-        toast.error(data.error || "Falha ao excluir usuario")
-      }
-    } catch (error) {
-      console.error("Error deleting user:", error)
-      toast.error("Falha ao excluir usuario")
-    } finally {
-      setIsLoading(false)
-      setDeleteId(null)
+    if (res.ok) {
+      setUsers(users.filter((u) => u.id !== deleteId))
+      toast.success("Usuario excluido com sucesso")
+    } else {
+      toast.error(data?.error || "Falha ao excluir usuario")
     }
+  } catch (error) {
+    console.error("Error deleting user:", error)
+    toast.error("Falha ao excluir usuario")
+  } finally {
+    setIsLoading(false)
+    setDeleteId(null)
   }
+}
+
 
   return (
     <div>
