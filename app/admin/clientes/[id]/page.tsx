@@ -1,31 +1,106 @@
 import { getSession } from "@/lib/auth"
 import { sql } from "@/lib/db"
 import { redirect, notFound } from "next/navigation"
-
-export const dynamic = 'force-dynamic'
 import { DashboardHeader } from "@/components/dashboard/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
-  Building2, Users, Key, Bell, ExternalLink, Edit, 
-  Clock, FolderOpen, Mail, ArrowLeft 
+import {
+  Building2,
+  Users,
+  Key,
+  Bell,
+  ExternalLink,
+  Edit,
+  Clock,
+  FolderOpen,
+  Mail,
+  ArrowLeft,
 } from "lucide-react"
 import Link from "next/link"
 
-async function getClient(id: string) {
-  const result = await sql`SELECT * FROM clients WHERE id = ${id}`
-  return result[0]
+export const dynamic = "force-dynamic"
+
+// ✅ Normalização de roles (evita “Admin”, “Administrador” etc quebrar lógica)
+const ALLOWED_ROLES = new Set(["ADMIN", "CLIENTE", "NEXUS_GROWTH", "Nexus Growth"] as const)
+type AllowedRole = "ADMIN" | "CLIENTE" | "NEXUS_GROWTH" | "Nexus Growth"
+
+function normalizeRole(input: unknown): AllowedRole | null {
+  if (typeof input !== "string") return null
+  const raw = input.trim()
+
+  const map: Record<string, AllowedRole> = {
+    Admin: "ADMIN",
+    ADMIN: "ADMIN",
+    Administrador: "ADMIN", // ✅ trata “Administrador” como ADMIN para permissão
+    Cliente: "CLIENTE",
+    CLIENTE: "CLIENTE",
+    NEXUS_GROWTH: "NEXUS_GROWTH",
+    nexus_growth: "NEXUS_GROWTH",
+    "Nexus Growth": "Nexus Growth", // legacy
+    "nexus growth": "Nexus Growth",
+  }
+
+  const mapped = map[raw]
+  if (mapped && ALLOWED_ROLES.has(mapped)) return mapped
+
+  const upper = raw.toUpperCase().replace(/\s+/g, "_")
+  if (ALLOWED_ROLES.has(upper as AllowedRole)) return upper as AllowedRole
+
+  return null
 }
 
-async function getClientData(clientId: string) {
+type Client = {
+  id: string
+  name: string
+  slug: string
+  plan: string
+  status: string
+  drive_link: string | null
+  notes: string | null
+  created_at: string
+}
+
+type UserRow = {
+  id: string
+  name: string
+  email: string
+  created_at: string
+}
+
+type AccessRow = {
+  id: string
+  service_name: string
+  service_url: string | null
+  login: string
+}
+
+type NoticeRow = {
+  id: string
+  created_at: string
+}
+
+async function getClient(id: string): Promise<Client | null> {
+  const result = await sql`SELECT * FROM clients WHERE id = ${id}`
+  return (result?.[0] as Client) ?? null
+}
+
+async function getClientData(clientId: string): Promise<{
+  users: UserRow[]
+  accesses: AccessRow[]
+  notices: NoticeRow[]
+}> {
   const [users, accesses, notices] = await Promise.all([
-    sql`SELECT * FROM users WHERE client_id = ${clientId} ORDER BY created_at DESC`,
-    sql`SELECT * FROM accesses WHERE client_id = ${clientId} ORDER BY service_name ASC`,
-    sql`SELECT * FROM notices WHERE client_id = ${clientId} ORDER BY created_at DESC`,
+    sql`SELECT id, name, email, created_at FROM users WHERE client_id = ${clientId} ORDER BY created_at DESC`,
+    sql`SELECT id, service_name, service_url, login FROM accesses WHERE client_id = ${clientId} ORDER BY service_name ASC`,
+    sql`SELECT id, created_at FROM notices WHERE client_id = ${clientId} ORDER BY created_at DESC`,
   ])
 
-  return { users, accesses, notices }
+  return {
+    users: users as UserRow[],
+    accesses: accesses as AccessRow[],
+    notices: notices as NoticeRow[],
+  }
 }
 
 const planColors: Record<string, string> = {
@@ -45,33 +120,36 @@ export default async function ClientDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  // ✅ Necessário na tua versão do Next (resolve o erro “params is a Promise”)
   const { id } = await params
-  const session = await getSession()
 
-  const adminRoles = ["ADMIN", "Administrador", "Nexus Growth"]
-  if (!session || !adminRoles.includes(session.role)) {
+  const session = await getSession()
+  const sessionRole = normalizeRole(session?.role)
+
+  // ✅ Permissão: ADMIN ou NEXUS_GROWTH (inclui legacy "Nexus Growth")
+  const canView = sessionRole === "ADMIN" || sessionRole === "NEXUS_GROWTH" || sessionRole === "Nexus Growth"
+  const canEdit = sessionRole === "ADMIN"
+
+  if (!session || !canView) {
     redirect("/login")
   }
 
   const client = await getClient(id)
-
-  if (!client) {
-    notFound()
-  }
+  if (!client) notFound()
 
   const data = await getClientData(id)
 
   return (
     <div className="min-h-screen">
-      <DashboardHeader
-        title={client.name}
-        subtitle="Detalhes do cliente"
-      />
+      <DashboardHeader title={client.name} subtitle="Detalhes do cliente" />
 
       <div className="p-6 space-y-6">
         {/* Back button */}
         <Link href="/admin/clientes">
-          <Button variant="ghost" className="text-slate-400 hover:text-white hover:bg-slate-800 bg-transparent">
+          <Button
+            variant="ghost"
+            className="text-slate-400 hover:text-white hover:bg-slate-800 bg-transparent"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para clientes
           </Button>
@@ -90,12 +168,21 @@ export default async function ClientDetailPage({
                   <CardDescription className="text-slate-400 text-base">@{client.slug}</CardDescription>
                 </div>
               </div>
+
               <div className="flex items-center gap-2">
-                <Badge className={planColors[client.plan]}>{client.plan}</Badge>
-                <Badge className={statusColors[client.status]}>{client.status}</Badge>
-                {(session.role === "ADMIN" || session.role === "Administrador") && (
+                <Badge className={planColors[client.plan] ?? "bg-slate-600 text-white"}>
+                  {client.plan}
+                </Badge>
+                <Badge className={statusColors[client.status] ?? "bg-slate-600 text-white"}>
+                  {client.status}
+                </Badge>
+
+                {canEdit && (
                   <Link href={`/admin/clientes/${client.id}/editar`}>
-                    <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent"
+                    >
                       <Edit className="w-4 h-4 mr-2" />
                       Editar
                     </Button>
@@ -104,6 +191,7 @@ export default async function ClientDetailPage({
               </div>
             </div>
           </CardHeader>
+
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
@@ -146,11 +234,9 @@ export default async function ClientDetailPage({
               <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
                 <div className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-slate-400" />
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-slate-500">Notas</p>
-                    <p className="text-sm text-white truncate">
-                      {client.notes || "Sem notas"}
-                    </p>
+                    <p className="text-sm text-white truncate">{client.notes || "Sem notas"}</p>
                   </div>
                 </div>
               </div>
@@ -214,12 +300,17 @@ export default async function ClientDetailPage({
           <CardContent>
             {data.users.length > 0 ? (
               <div className="space-y-3">
-                {data.users.map((user: { id: string; name: string; email: string; created_at: string }) => (
-                  <div key={user.id} className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                {data.users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                          <span className="text-blue-400 font-medium">{user.name.charAt(0)}</span>
+                          <span className="text-blue-400 font-medium">
+                            {user.name?.charAt(0) ?? "?"}
+                          </span>
                         </div>
                         <div>
                           <p className="font-medium text-white">{user.name}</p>
@@ -250,20 +341,20 @@ export default async function ClientDetailPage({
           <CardContent>
             {data.accesses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {data.accesses.map((access: { 
-                  id: string; 
-                  service_name: string; 
-                  service_url: string | null;
-                  login: string;
-                }) => (
-                  <div key={access.id} className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                {data.accesses.map((access) => (
+                  <div
+                    key={access.id}
+                    className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                        <span className="text-emerald-400 font-bold">{access.service_name.charAt(0)}</span>
+                        <span className="text-emerald-400 font-bold">
+                          {access.service_name?.charAt(0) ?? "?"}
+                        </span>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-medium text-white">{access.service_name}</p>
-                        <p className="text-sm text-slate-400">{access.login}</p>
+                        <p className="text-sm text-slate-400 truncate">{access.login}</p>
                       </div>
                     </div>
                   </div>
