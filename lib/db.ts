@@ -1,55 +1,14 @@
 import { neon } from "@neondatabase/serverless"
 
-export const sql = neon(process.env.DATABASE_URL!)
+const connectionString =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.DATABASE_URL_UNPOOLED
 
-// Types
-export type UserRole = string
-export type ClientPlan = "START" | "PRO" | "SCALE"
-export type ClientStatus = "ACTIVE" | "PAUSED" | "ONBOARDING"
-
-export interface Client {
-  id: string
-  name: string
-  slug: string
-  plan: ClientPlan
-  status: ClientStatus
-  drive_link: string | null
-  notes: string | null
-  created_at: string
-  updated_at: string
+if (!connectionString) {
+  throw new Error("No database connection string found in env vars")
 }
 
-export interface User {
-  id: string
-  name: string
-  email: string
-  password_hash: string
-  role: UserRole
-  client_id: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface Access {
-  id: string
-  client_id: string
-  service_name: string
-  service_url: string | null
-  login: string
-  password: string
-  created_at: string
-  updated_at: string
-}
-
-export interface Notice {
-  id: string
-  client_id: string
-  title: string
-  message: string
-  created_at: string
-}
-
-// Helper to get user with client info
-export interface UserWithClient extends User {
-  client?: Client
-}
+export const sql = neon(connectionString)

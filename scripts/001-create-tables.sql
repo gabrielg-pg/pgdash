@@ -1,58 +1,65 @@
--- Create enum types
-CREATE TYPE user_role AS ENUM ('ADMIN', 'CLIENTE');
-CREATE TYPE client_plan AS ENUM ('START', 'PRO', 'SCALE');
-CREATE TYPE client_status AS ENUM ('ACTIVE', 'PAUSED', 'ONBOARDING');
-
--- Create clients table
-CREATE TABLE IF NOT EXISTS clients (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  slug VARCHAR(100) UNIQUE NOT NULL,
-  plan client_plan NOT NULL DEFAULT 'START',
-  status client_status NOT NULL DEFAULT 'ONBOARDING',
-  drive_link TEXT,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Create users table
+-- Create users table with authentication
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(100) UNIQUE NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role user_role NOT NULL DEFAULT 'CLIENTE',
-  client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('admin', 'manager', 'user')),
+  status VARCHAR(50) DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create accesses table
-CREATE TABLE IF NOT EXISTS accesses (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-  service_name VARCHAR(255) NOT NULL,
-  service_url TEXT,
-  login VARCHAR(255) NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Create sessions table for authentication
+CREATE TABLE IF NOT EXISTS sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  token VARCHAR(255) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create notices table
-CREATE TABLE IF NOT EXISTS notices (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- Create stores table
+CREATE TABLE IF NOT EXISTS stores (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  store_number VARCHAR(50) NOT NULL,
+  region VARCHAR(50) DEFAULT 'brasil' CHECK (region IN ('brasil', 'global')),
+  plan VARCHAR(100) NOT NULL,
+  progress INTEGER DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'pendente' CHECK (status IN ('pendente', 'em_andamento', 'concluido')),
+  created_by INTEGER REFERENCES users(id),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create indexes
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_client_id ON users(client_id);
-CREATE INDEX idx_clients_slug ON clients(slug);
-CREATE INDEX idx_accesses_client_id ON accesses(client_id);
-CREATE INDEX idx_notices_client_id ON notices(client_id);
-CREATE INDEX idx_notices_created_at ON notices(created_at DESC);
+-- Create customers table (linked to stores)
+CREATE TABLE IF NOT EXISTS customers (
+  id SERIAL PRIMARY KEY,
+  store_id INTEGER REFERENCES stores(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  birth_date DATE,
+  cpf VARCHAR(14),
+  address TEXT,
+  address_number VARCHAR(20),
+  cep VARCHAR(10),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create store_accounts table (for integration accounts)
+CREATE TABLE IF NOT EXISTS store_accounts (
+  id SERIAL PRIMARY KEY,
+  store_id INTEGER REFERENCES stores(id) ON DELETE CASCADE,
+  account_type VARCHAR(50) NOT NULL CHECK (account_type IN ('shopify', 'yampi', 'hostinger', 'appmax', 'hypersku')),
+  login VARCHAR(255),
+  password VARCHAR(255),
+  enabled BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_stores_created_by ON stores(created_by);
+CREATE INDEX IF NOT EXISTS idx_store_accounts_store_id ON store_accounts(store_id);
