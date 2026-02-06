@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ClientStepsManager } from "@/components/admin/client-steps-manager"
+import { PlanContentPreview } from "@/components/admin/plan-content-preview"
 import { MousePointer2, ArrowRight, Users, Map } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
@@ -50,6 +51,19 @@ async function getAllProgress() {
   }
 }
 
+async function getPlanButtons() {
+  try {
+    const result = await sql`
+      SELECT plan, link_url, label
+      FROM plan_buttons
+      WHERE plan IN ('start', 'pro', 'scale')
+    `
+    return result
+  } catch {
+    return []
+  }
+}
+
 export default async function AdminMapaPage() {
   const session = await getSession()
 
@@ -58,10 +72,24 @@ export default async function AdminMapaPage() {
     redirect("/login")
   }
 
-  const [clients, progress] = await Promise.all([
+  const [clients, progress, planButtons] = await Promise.all([
     getClients(),
     getAllProgress(),
+    getPlanButtons(),
   ])
+
+  // Get button config for each plan
+  const getButtonConfig = (plan: string) => {
+    const button = (planButtons as any[]).find((b: any) => b.plan === plan)
+    return {
+      link: button?.link_url || "https://wa.me/5511999999999",
+      label: button?.label || "Falar com um atendente",
+    }
+  }
+
+  const startButton = getButtonConfig("start")
+  const proButton = getButtonConfig("pro")
+  const scaleButton = getButtonConfig("scale")
 
   // Count clients by plan
   const planCounts = {
@@ -173,6 +201,20 @@ export default async function AdminMapaPage() {
             clients={clients as any} 
             allSteps={ALL_STEPS} 
             initialProgress={progress as any}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Plan Content Preview */}
+      <Card className="bg-[#0D0D12] border-zinc-800/60">
+        <CardContent className="p-6">
+          <PlanContentPreview
+            startButtonLink={startButton.link}
+            startButtonLabel={startButton.label}
+            proButtonLink={proButton.link}
+            proButtonLabel={proButton.label}
+            scaleButtonLink={scaleButton.link}
+            scaleButtonLabel={scaleButton.label}
           />
         </CardContent>
       </Card>

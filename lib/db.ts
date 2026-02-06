@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless"
 export const sql = neon(process.env.DATABASE_URL!)
 
 // Types
-export type UserRole = "ADMIN" | "CLIENTE"
+export type UserRole = string
 export type ClientPlan = "START" | "PRO" | "SCALE"
 export type ClientStatus = "ACTIVE" | "PAUSED" | "ONBOARDING"
 
@@ -41,4 +41,15 @@ export interface Access {
   updated_at: string
 }
 
-export const sql = neon(connectionString)
+export interface Notice {
+  id: string
+  client_id: string
+  title: string
+  message: string
+  created_at: string
+}
+
+// Helper to get user with client info
+export interface UserWithClient extends User {
+  client?: Client
+}
