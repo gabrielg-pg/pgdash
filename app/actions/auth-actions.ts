@@ -34,7 +34,7 @@ export async function createUserAction(data: {
 }) {
   const { user } = await getSession()
   if (!user || !user.role.includes("admin")) {
-    return { success: false, error: "Não autorizado" }
+    return { success: false, error: "Não aautorizado" }
   }
 
   // Use primary role for legacy field
