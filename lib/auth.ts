@@ -9,13 +9,21 @@ export type AuthUser = {
   id: number
   username: string
   name: string
-  role: string
-  roles: string[]
+  email: string
+  role: "ADMIN" | "CLIENTE" | "Nexus Growth"
+  client_id: string | null
+  avatar_url?: string
+  client?: {
+    id: string
+    name: string
+    slug: string
+    plan: string
+    status: string
+    drive_link: string | null
+  }
 }
 
-
-// bcrypt hash (para criar usuário)
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10)
 }
 
