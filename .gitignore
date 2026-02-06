@@ -43,3 +43,13 @@ Thumbs.db
 # ===============================
 *.tsbuildinfo
 next-env.d.ts
+
+# -------------------------------
+# Prevent accidental commits of large build/cache and platform-specific binaries
+# -------------------------------
+# turbopack cache files
+.next/dev/cache/
+# turbopack SST files (large blobs that broke the push)
+.next/**/*.sst
+# next-swc native binaries
+node_modules/**/next-swc*
