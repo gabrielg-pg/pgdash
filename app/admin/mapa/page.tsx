@@ -54,9 +54,9 @@ async function getAllProgress() {
 async function getPlanButtons() {
   try {
     const result = await sql`
-      SELECT plan, link_url, label
-      FROM plan_buttons
-      WHERE plan IN ('start', 'pro', 'scale')
+      SELECT link_key, link_url, label
+      FROM plan_upgrade_links
+      WHERE link_key IN ('atendente_start', 'atendente_pro', 'atendente_scale')
     `
     return result
   } catch {
@@ -79,17 +79,17 @@ export default async function AdminMapaPage() {
   ])
 
   // Get button config for each plan
-  const getButtonConfig = (plan: string) => {
-    const button = (planButtons as any[]).find((b: any) => b.plan === plan)
+  const getButtonConfig = (linkKey: string) => {
+    const button = (planButtons as any[]).find((b: any) => b.link_key === linkKey)
     return {
       link: button?.link_url || "https://wa.me/5511999999999",
       label: button?.label || "Falar com um atendente",
     }
   }
 
-  const startButton = getButtonConfig("start")
-  const proButton = getButtonConfig("pro")
-  const scaleButton = getButtonConfig("scale")
+  const startButton = getButtonConfig("atendente_start")
+  const proButton = getButtonConfig("atendente_pro")
+  const scaleButton = getButtonConfig("atendente_scale")
 
   // Count clients by plan
   const planCounts = {

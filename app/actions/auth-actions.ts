@@ -1,47 +1,58 @@
 "use server"
 
-import { login, logout, createUser, getSession, initializeAdminUser } from "@/lib/auth"
+import { authenticateUser, getSession, destroySession, hashPassword } from "@/lib/auth"
+import { sql } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-export async function loginAction(formData: FormData) {
-  // Initialize admin user if not exists
-  await initializeAdminUser()
-
-  const username = formData.get("username") as string
-  const password = formData.get("password") as string
-
-  const result = await login(username, password)
-
-  if (result.success) {
-    redirect("/dashboard")
+export async function login(email: string, password: string) {
+  const user = await authenticateUser(email, password)
+  if (!user) {
+    return { error: "Credenciais invalidas" }
   }
-
-  return result
+  const { createSession } = await import("@/lib/auth")
+  await createSession(user.id)
+  return { success: true, role: user.role, clientSlug: user.client_slug }
 }
 
-export async function logoutAction() {
-  await logout()
+export async function logout() {
+  await destroySession()
   redirect("/")
 }
 
-export async function createUserAction(data: {
-  username: string
+export async function createUser(data: {
+  name: string
   email: string
   password: string
-  name: string
-  role: string[]
+  role: string
+  client_id?: string | null
 }) {
-  const { user } = await getSession()
-  if (!user || !user.role.includes("admin")) {
-    return { success: false, error: "Não autorizado" }
+  const session = await getSession()
+  if (!session || (session.role !== "admin" && session.role !== "nexus_growth")) {
+    return { error: "Sem permissao" }
   }
 
-  // Use primary role for legacy field
-  const primaryRole = data.role[0] || "user"
-  const result = await createUser({ ...data, role: primaryRole })
-  if (result.success) {
-    revalidatePath("/admin")
+  const passwordHash = await hashPassword(data.password)
+
+  try {
+    await sql`
+      INSERT INTO users (id, name, email, password_hash, role, client_id)
+      VALUES (gen_random_uuid(), ${data.name}, ${data.email}, ${passwordHash}, ${data.role}, ${data.client_id || null})
+    `
+    revalidatePath("/admin/usuarios")
+    return { success: true }
+  } catch (error: any) {
+    if (error?.message?.includes("unique")) {
+      return { error: "Email ja cadastrado" }
+    }
+    return { error: "Erro ao criar usuario" }
   }
-  return result
+}
+
+export async function initializeAdminUser() {
+  const session = await getSession()
+  if (!session || session.role !== "admin") {
+    return { error: "Sem permissao" }
+  }
+  return { success: true, message: "Admin ja inicializado" }
 }

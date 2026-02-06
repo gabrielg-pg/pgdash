@@ -82,8 +82,8 @@ const nexusGrowthNavItems = [
   { href: "/admin/usuarios", label: "Usuários", icon: Users },
   { href: "/admin/mapa", label: "Mapa da Operação", icon: Map },
   { href: "/admin/relatorios-semanais", label: "Relatórios Semanais", icon: FileText },
+  { href: "/admin/acessos", label: "Acessos", icon: Key },
   { href: "/admin/avisos", label: "Avisos", icon: Bell },
-  { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ]
 
 export function DashboardSidebar({ user, slug, hasWeeklyReports }: SidebarProps) {
