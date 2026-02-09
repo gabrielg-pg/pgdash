@@ -125,6 +125,27 @@ export async function destroySession(): Promise<void> {
   cookieStore.delete(SESSION_COOKIE)
 }
 
+export async function requireAuth(): Promise<SessionUser> {
+  const { redirect } = await import("next/navigation")
+  const session = await getSession()
+  if (!session) {
+    redirect("/login")
+  }
+  return session
+}
+
+export async function requireAdmin(): Promise<SessionUser> {
+  const { redirect } = await import("next/navigation")
+  const session = await getSession()
+  if (!session) {
+    redirect("/login")
+  }
+  if (session.role !== "admin" && session.role !== "nexus_growth") {
+    redirect("/login")
+  }
+  return session
+}
+
 export async function authenticateUser(email: string, password: string): Promise<(User & { client_slug?: string }) | null> {
   try {
     const result = await sql`

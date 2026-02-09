@@ -1,10 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useTransition } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LayoutDashboard, Store, Users, LogOut, Menu, X, ChevronRight, Loader2, Calendar, Rocket } from "lucide-react"
@@ -24,9 +22,9 @@ export function DashboardLayout({ children, userRoles = ["user"] }: DashboardLay
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "zona_execucao"] },
     { name: "Nova Loja", href: "/nova-loja", icon: Store, roles: ["admin", "zona_execucao"] },
-    { name: "Reuniões", href: "/reunioes", icon: Calendar, roles: ["admin", "comercial"] },
-    { name: "Zona de Execução", href: "/zona-de-execucao", icon: Rocket, roles: ["admin", "comercial", "zona_execucao"] },
-    { name: "Usuários", href: "/admin", icon: Users, roles: ["admin"] },
+    { name: "Reunioes", href: "/reunioes", icon: Calendar, roles: ["admin", "comercial"] },
+    { name: "Zona de Execucao", href: "/zona-de-execucao", icon: Rocket, roles: ["admin", "comercial", "zona_execucao"] },
+    { name: "Usuarios", href: "/admin", icon: Users, roles: ["admin"] },
   ]
 
   const filteredNavigation = navigation.filter((item) => item.roles.some(role => userRoles.includes(role)))
@@ -38,111 +36,56 @@ export function DashboardLayout({ children, userRoles = ["user"] }: DashboardLay
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile sidebar overlay */}
+    <div className="flex h-screen bg-background">
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300" 
-          onClick={() => setSidebarOpen(false)} 
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 z-50 h-full w-72 bg-sidebar backdrop-blur-xl border-r border-sidebar-border transform transition-all duration-300 ease-out lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-between h-20 px-6 border-b border-sidebar-border">
-            <div className="flex items-center gap-3">
-              <Image
-                src="https://i.imgur.com/jfNDVLp.png"
-                alt="Pro Growth Logo"
-                width={40}
-                height={40}
-                className="rounded-xl shadow-lg shadow-primary/20"
-              />
-              <span className="text-lg font-bold text-white tracking-tight">Pro Growth</span>
-            </div>
-            <button 
-              onClick={() => setSidebarOpen(false)} 
-              className="lg:hidden text-muted-foreground hover:text-white transition-colors p-1 rounded-lg hover:bg-white/5"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            <p className="px-3 mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Menu</p>
-            {filteredNavigation.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? "bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/25"
-                      : "text-muted-foreground hover:bg-white/5 hover:text-white",
-                  )}
-                >
-                  <item.icon className={cn("h-5 w-5", isActive && "drop-shadow-lg")} />
-                  {item.name}
-                  {isActive && <ChevronRight className="ml-auto h-4 w-4" />}
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Logout */}
-          <div className="p-4 border-t border-sidebar-border">
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              disabled={isPending}
-              className="w-full justify-start text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200 rounded-xl py-3"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                  Saindo...
-                </>
-              ) : (
-                <>
-                  <LogOut className="mr-3 h-5 w-5" />
-                  Sair da conta
-                </>
-              )}
-            </Button>
-          </div>
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform transition-transform lg:translate-x-0 lg:static lg:z-auto",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <span className="text-lg font-semibold text-foreground">Pro Growth</span>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-muted-foreground hover:text-foreground p-1 rounded-lg">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <nav className="p-4 space-y-1">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2 block">Menu</span>
+          {filteredNavigation.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link key={item.href} href={item.href} className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}>
+                <item.icon className="h-4 w-4" />
+                {item.name}
+                {isActive && <ChevronRight className="h-4 w-4 ml-auto" />}
+              </Link>
+            )
+          })}
+        </nav>
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+          <Button variant="ghost" onClick={handleLogout} disabled={isPending} className="w-full justify-start text-muted-foreground hover:text-foreground">
+            {isPending ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saindo...</>
+            ) : (
+              <><LogOut className="h-4 w-4 mr-2" />Sair da conta</>
+            )}
+          </Button>
         </div>
       </aside>
-
-      {/* Main content */}
-      <div className="lg:pl-72 transition-all duration-300">
-        {/* Header */}
-        <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-xl border-b border-border flex items-center px-4 lg:px-8">
-          <button 
-            onClick={() => setSidebarOpen(true)} 
-            className="lg:hidden text-muted-foreground hover:text-white mr-4 p-2 rounded-lg hover:bg-white/5 transition-colors"
-          >
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="flex items-center p-4 border-b border-border lg:hidden">
+          <button onClick={() => setSidebarOpen(true)} className="text-muted-foreground hover:text-foreground mr-4 p-2 rounded-lg hover:bg-muted">
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-1 rounded-full bg-gradient-to-b from-primary to-primary/50" />
-            <h1 className="text-xl font-semibold text-foreground">
-              {filteredNavigation.find((item) => item.href === pathname)?.name || "Dashboard"}
-            </h1>
-          </div>
+          <span className="text-lg font-semibold text-foreground">
+            {filteredNavigation.find((item) => item.href === pathname)?.name || "Dashboard"}
+          </span>
         </header>
-
-        {/* Page content */}
-        <main className="p-4 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
   )

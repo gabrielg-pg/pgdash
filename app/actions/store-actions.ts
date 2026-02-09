@@ -5,18 +5,21 @@ import { getSession } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 export async function getStores() {
-  const { user } = await getSession()
-  if (!user) return []
+  const session = await getSession()
+  if (!session) return []
 
-  const stores = await sql`
-    SELECT s.*, c.name as customer_name, u.name as created_by_name
-    FROM stores s
-    LEFT JOIN customers c ON c.store_id = s.id
-    LEFT JOIN users u ON s.created_by = u.id
-    ORDER BY s.created_at DESC
-  `
-
-  return stores
+  try {
+    const stores = await sql`
+      SELECT s.*, c.name as customer_name, u.name as created_by_name
+      FROM stores s
+      LEFT JOIN customers c ON c.store_id = s.id
+      LEFT JOIN users u ON s.created_by = u.id
+      ORDER BY s.created_at DESC
+    `
+    return stores
+  } catch {
+    return []
+  }
 }
 
 export async function createStore(data: {
@@ -33,15 +36,15 @@ export async function createStore(data: {
   driveLink?: string
   accounts: Record<string, { login: string; password: string; enabled: boolean }>
 }) {
-  const { user } = await getSession()
-  if (!user) {
-    return { success: false, error: "Não autorizado" }
+  const session = await getSession()
+  if (!session) {
+    return { success: false, error: "Nao autorizado" }
   }
 
   try {
     const storeResult = await sql`
       INSERT INTO stores (name, store_number, region, plan, progress, status, created_by, drive_link)
-VALUES (${data.storeName}, ${data.storeNumber}, ${data.region}, ${data.plan}, 25, 'em_andamento', ${user.id}, ${data.driveLink || null})
+      VALUES (${data.storeName}, ${data.storeNumber}, ${data.region}, ${data.plan}, 25, 'em_andamento', ${session.id}, ${data.driveLink || null})
       RETURNING id
     `
 
@@ -78,9 +81,9 @@ VALUES (${data.storeName}, ${data.storeNumber}, ${data.region}, ${data.plan}, 25
 }
 
 export async function getStoreDetails(storeId: number) {
-  const { user } = await getSession()
-  if (!user) {
-    return { success: false, error: "Não autorizado" }
+  const session = await getSession()
+  if (!session) {
+    return { success: false, error: "Nao autorizado" }
   }
 
   try {
@@ -92,7 +95,7 @@ export async function getStoreDetails(storeId: number) {
     `
 
     if (storeResult.length === 0) {
-      return { success: false, error: "Loja não encontrada" }
+      return { success: false, error: "Loja nao encontrada" }
     }
 
     const customerResult = await sql`
@@ -125,18 +128,18 @@ export async function updateStore(
     drive_link: string
   }>,
 ) {
-  const { user } = await getSession()
-  if (!user) {
-    return { success: false, error: "Não autorizado" }
+  const session = await getSession()
+  if (!session) {
+    return { success: false, error: "Nao autorizado" }
   }
 
   try {
     await sql`
       UPDATE stores 
       SET 
-        name = COALESCE(${data.name}, name),
-        store_number = COALESCE(${data.store_number}, store_number),
-        drive_link = COALESCE(${data.drive_link}, drive_link),
+        name = COALESCE(${data.name || null}, name),
+        store_number = COALESCE(${data.store_number || null}, store_number),
+        drive_link = COALESCE(${data.drive_link || null}, drive_link),
         updated_at = NOW()
       WHERE id = ${storeId}
     `
@@ -150,9 +153,9 @@ export async function updateStore(
 }
 
 export async function updateStoreProgress(storeId: number, progress: number) {
-  const { user } = await getSession()
-  if (!user) {
-    return { success: false, error: "Não autorizado" }
+  const session = await getSession()
+  if (!session) {
+    return { success: false, error: "Nao autorizado" }
   }
 
   try {
@@ -178,9 +181,9 @@ export async function updateStoreProgress(storeId: number, progress: number) {
 }
 
 export async function deleteStore(storeId: number) {
-  const { user } = await getSession()
-  if (!user) {
-    return { success: false, error: "Não autorizado" }
+  const session = await getSession()
+  if (!session) {
+    return { success: false, error: "Nao autorizado" }
   }
 
   try {

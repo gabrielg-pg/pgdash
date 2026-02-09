@@ -56,3 +56,9 @@ export async function initializeAdminUser() {
   }
   return { success: true, message: "Admin ja inicializado" }
 }
+
+// Alias for logout used by dashboard-layout
+export async function logoutAction() {
+  await destroySession()
+  redirect("/")
+}
