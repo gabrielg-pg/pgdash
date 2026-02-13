@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -72,6 +73,7 @@ interface FormData {
   cep: string
   plan: string
   driveLink: string
+  collections: string
   accounts: Record<string, { login: string; password: string; enabled: boolean }>
 }
 
@@ -160,6 +162,7 @@ export function NewStoreForm() {
     cep: "",
     plan: "",
     driveLink: "",
+    collections: "",
     accounts: initializeAccounts("brasil"),
   })
   const router = useRouter()
@@ -328,6 +331,20 @@ export function NewStoreForm() {
                   onChange={(e) => updateFormData("driveLink", e.target.value)}
                   placeholder="https://drive.google.com/..."
                   className="bg-secondary border-input text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="collections" className="text-foreground">
+                  Coleções da Loja
+                </Label>
+                <Textarea
+                  id="collections"
+                  value={formData.collections}
+                  onChange={(e) => updateFormData("collections", e.target.value)}
+                  placeholder={"Digite as coleções da loja, uma por linha\nEx:\nColecao Verao\nColecao Inverno\nColecao Basica"}
+                  rows={6}
+                  className="bg-secondary border-input text-foreground placeholder:text-muted-foreground resize-none"
                 />
               </div>
 
