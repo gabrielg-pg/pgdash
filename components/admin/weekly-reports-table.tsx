@@ -117,7 +117,8 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
   )
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR", {
+    const normalized = dateString.includes("T") ? dateString : `${dateString}T12:00:00`
+    return new Date(normalized).toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
     })
