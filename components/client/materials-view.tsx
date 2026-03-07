@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, FolderOpen, Video, Play, Film } from "lucide-react"
+import { ExternalLink, FolderOpen, Video, Play } from "lucide-react"
 
 interface MaterialsViewProps {
   driveLink: string | null
@@ -10,9 +10,16 @@ interface MaterialsViewProps {
 
 export function MaterialsView({ driveLink }: MaterialsViewProps) {
   const videoTutorials = [
-    { title: "Introdução à Plataforma", description: "Aprenda o básico sobre como usar o PG Dash", duration: "5 min" },
-    { title: "Gerenciando Acessos", description: "Como visualizar e copiar suas credenciais", duration: "3 min" },
-    { title: "Acompanhando o Mapa", description: "Entenda as etapas da sua operação", duration: "4 min" },
+    { 
+      title: "Tutoriais Shopify", 
+      description: "Aprenda a manusear sua operação na Shopify", 
+      link: "https://drive.google.com/drive/folders/12CoLjhu7Nf0LWNWBZohJ2GjMddNPmd3d" 
+    },
+    { 
+      title: "Como Mapear o Produto com Fornecedor", 
+      description: "Aprenda a mapear seus produtos assim que vender e realizar o envio diretamente para seus clientes", 
+      link: "https://drive.google.com/drive/folders/1z_MOAy4fkuxQI9U6T-MaN_9uLvsjD3HB" 
+    },
   ]
 
   return (
@@ -33,6 +40,23 @@ export function MaterialsView({ driveLink }: MaterialsViewProps) {
           </div>
         </CardHeader>
         <CardContent className="p-4 md:p-6">
+          {/* Vídeo de Boas-Vindas */}
+          <div className="flex justify-center mb-6">
+            <div className="w-full max-w-xl aspect-video rounded-xl overflow-hidden border border-[rgba(255,255,255,0.06)]">
+              <iframe
+                title="vimeo-player"
+                src="https://player.vimeo.com/video/1170383497?h=ce7013180f"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+
           <div className="grid gap-4">
             {videoTutorials.map((video, index) => (
               <div
@@ -43,24 +67,17 @@ export function MaterialsView({ driveLink }: MaterialsViewProps) {
                   <Play className="w-6 h-6 text-[#A855F7]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[#F5F5F7] truncate">{video.title}</p>
-                  <p className="text-sm text-[rgba(245,245,247,0.52)] truncate">{video.description}</p>
+                  <p className="font-medium text-[#F5F5F7]">{video.title}</p>
+                  <p className="text-sm text-[rgba(245,245,247,0.52)]">{video.description}</p>
                 </div>
-                <span className="text-xs text-[rgba(245,245,247,0.42)] bg-[#0D0D12] px-2 py-1 rounded-lg shrink-0">
-                  {video.duration}
-                </span>
+                <Button
+                  onClick={() => window.open(video.link, "_blank")}
+                  className="bg-[#A855F7] hover:bg-[#9333EA] text-white shrink-0"
+                >
+                  Clique aqui
+                </Button>
               </div>
             ))}
-          </div>
-
-          {/* Mensagem informativa */}
-          <div className="mt-6 p-4 bg-[#171723] rounded-xl border border-[rgba(255,255,255,0.06)]">
-            <div className="flex items-start gap-3">
-              <Film className="w-5 h-5 text-[#A855F7] mt-0.5 shrink-0" />
-              <p className="text-sm text-[rgba(245,245,247,0.62)]">
-                Os vídeos estarão disponíveis em breve. Enquanto isso, acesse o Google Drive para ver todos os materiais disponíveis.
-              </p>
-            </div>
           </div>
         </CardContent>
       </Card>
