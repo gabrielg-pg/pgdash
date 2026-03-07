@@ -81,6 +81,7 @@ export default function LoginPage() {
             alt="Pro Growth" 
             width={64} 
             height={64} 
+            priority
             className="mx-auto rounded-2xl shadow-lg shadow-[rgba(168,85,247,0.4)]"
           />
           <div>
