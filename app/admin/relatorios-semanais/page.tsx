@@ -8,12 +8,21 @@ import { FileText } from "lucide-react"
 
 async function getReportsAndClients() {
   try {
-    const [reports, clients] = await Promise.all([
+    const [reportsResult, clientsResult] = await Promise.all([
       sql`
         SELECT 
-          wr.*,
-          c.name as client_name,
-          c.slug as client_slug
+          wr.id,
+          wr.client_id,
+          COALESCE(wr.report_date::text, '') as report_date,
+          COALESCE(wr.status, 'estavel') as status,
+          COALESCE(wr.summary, '') as summary,
+          wr.actions_taken,
+          wr.data_analysis,
+          wr.decisions_made,
+          wr.next_week_guidance,
+          wr.created_at,
+          COALESCE(c.name, 'Cliente não encontrado') as client_name,
+          COALESCE(c.slug, '') as client_slug
         FROM weekly_reports wr
         LEFT JOIN clients c ON wr.client_id = c.id
         ORDER BY wr.report_date DESC
@@ -21,7 +30,15 @@ async function getReportsAndClients() {
       sql`SELECT id, name FROM clients ORDER BY name`
     ])
 
-    return { reports: reports || [], clients: clients || [] }
+    // Ensure all reports have string values for searchable fields
+    const reports = (reportsResult || []).map((r: any) => ({
+      ...r,
+      client_name: String(r.client_name || ''),
+      summary: String(r.summary || ''),
+      status: String(r.status || 'estavel'),
+    }))
+
+    return { reports, clients: clientsResult || [] }
   } catch (error) {
     console.error("Error fetching data:", error)
     return { reports: [], clients: [] }
