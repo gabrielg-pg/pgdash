@@ -1,5 +1,7 @@
 import { Suspense } from "react"
 import { sql } from "@/lib/db"
+
+export const dynamic = 'force-dynamic'
 import { WeeklyReportsTable } from "@/components/admin/weekly-reports-table"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { FileText } from "lucide-react"
@@ -13,13 +15,13 @@ async function getReportsAndClients() {
           c.name as client_name,
           c.slug as client_slug
         FROM weekly_reports wr
-        JOIN clients c ON wr.client_id = c.id
+        LEFT JOIN clients c ON wr.client_id = c.id
         ORDER BY wr.report_date DESC
       `,
       sql`SELECT id, name FROM clients ORDER BY name`
     ])
 
-    return { reports, clients }
+    return { reports: reports || [], clients: clients || [] }
   } catch (error) {
     console.error("Error fetching data:", error)
     return { reports: [], clients: [] }
