@@ -6,9 +6,8 @@ import { DashboardHeader } from "@/components/dashboard/header"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ClientStepsManager } from "@/components/admin/client-steps-manager"
 import { PlanContentPreview } from "@/components/admin/plan-content-preview"
-import { MousePointer2, ArrowRight, Users, Map } from "lucide-react"
+import { MousePointer2, ArrowRight, Users } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -38,18 +37,7 @@ async function getClients() {
   return sql`SELECT id, name, slug, plan, logo_url, whatsapp_link, drive_link FROM clients ORDER BY name ASC`
 }
 
-async function getAllProgress() {
-  try {
-    const result = await sql`
-      SELECT client_id, step_id, status, completed_at, updated_at
-      FROM client_step_progress
-      ORDER BY client_id, step_id
-    `
-    return result
-  } catch {
-    return []
-  }
-}
+
 
 async function getPlanButtons() {
   try {
@@ -72,9 +60,8 @@ export default async function AdminMapaPage() {
     redirect("/login")
   }
 
-  const [clients, progress, planButtons] = await Promise.all([
+  const [clients, planButtons] = await Promise.all([
     getClients(),
-    getAllProgress(),
     getPlanButtons(),
   ])
 
@@ -178,30 +165,6 @@ export default async function AdminMapaPage() {
               </Button>
             </Link>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Client Steps Manager */}
-      <Card className="bg-[#0D0D12] border-violet-500/20">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-              <Map className="w-5 h-5 text-violet-400" />
-            </div>
-            <div>
-              <CardTitle className="text-[#F5F5F7]">Gerenciar Etapas dos Clientes</CardTitle>
-              <CardDescription className="text-[rgba(245,245,247,0.52)]">
-                Clique no status de cada etapa para alterar. As mudanças são salvas automaticamente.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <ClientStepsManager 
-            clients={clients as any} 
-            allSteps={ALL_STEPS} 
-            initialProgress={progress as any}
-          />
         </CardContent>
       </Card>
 
