@@ -111,9 +111,9 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
 
   const filteredReports = reports.filter(
     (report) =>
-      report.client_name.toLowerCase().includes(search.toLowerCase()) ||
-      report.summary.toLowerCase().includes(search.toLowerCase()) ||
-      report.status.toLowerCase().includes(search.toLowerCase())
+      (report.client_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (report.summary || "").toLowerCase().includes(search.toLowerCase()) ||
+      (report.status || "").toLowerCase().includes(search.toLowerCase())
   )
 
   const formatDate = (dateString: string) => {
