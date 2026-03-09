@@ -55,6 +55,7 @@ interface SidebarProps {
 const getClientNavItems = (slug: string) => [
   { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
   { href: `/dashboards/${slug}/mapa`, label: "Mapa da Operação", icon: Map },
+  { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
   { href: `/dashboards/${slug}/acessos`, label: "Acessos", icon: Key },
   { href: `/dashboards/${slug}/avisos`, label: "Avisos", icon: Bell },
   { href: `/dashboards/${slug}/materiais`, label: "Materiais", icon: FolderOpen },
@@ -91,7 +92,12 @@ export function DashboardSidebar({ user, slug, hasWeeklyReports }: SidebarProps)
   const { collapsed, setCollapsed, isMobileOpen, setMobileOpen } = useSidebar()
 
   const clientSlug = slug || user.client?.slug || ""
-  const clientNavItems = getClientNavItems(clientSlug)
+  const allClientNavItems = getClientNavItems(clientSlug)
+  
+  // Filter out "Leitura Semanal" if client has no weekly reports
+  const clientNavItems = user.role === "CLIENTE" && !hasWeeklyReports
+    ? allClientNavItems.filter(item => !item.href.includes('/leitura-semanal'))
+    : allClientNavItems
   
   // Select nav items based on user role
   const getNavItems = () => {

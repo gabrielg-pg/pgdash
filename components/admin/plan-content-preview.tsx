@@ -36,24 +36,24 @@ export function PlanContentPreview({
       </div>
 
       <Tabs defaultValue="start" className="w-full">
-        <TabsList className="w-full bg-zinc-900/50 border border-zinc-800/60 p-1 rounded-xl">
+        <TabsList className="w-full bg-[#0D0D12] border border-zinc-800/60 p-1 rounded-xl">
           <TabsTrigger 
             value="start" 
             className="flex-1 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 rounded-lg transition-all"
           >
-            START PRO GROWTH
+            Start PRO GROWTH
           </TabsTrigger>
           <TabsTrigger 
             value="pro" 
             className="flex-1 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 rounded-lg transition-all"
           >
-            PRO VERTEBRA
+            Pro VÉRTEBRA
           </TabsTrigger>
           <TabsTrigger 
             value="scale" 
             className="flex-1 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400 rounded-lg transition-all"
           >
-            SCALE VERTEBRA+
+            Scale VÉRTEBRA+ GLOBAL
           </TabsTrigger>
         </TabsList>
 
@@ -81,7 +81,7 @@ export function PlanContentPreview({
               
               <div className="flex flex-col items-start md:items-end gap-2">
                 <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 px-3 py-1 text-sm font-medium">
-                  START PRO GROWTH
+                  Start PRO GROWTH
                 </Badge>
                 <p className="text-xs text-zinc-500">
                   Nivel atual - Operador em formacao
@@ -94,7 +94,7 @@ export function PlanContentPreview({
           <div className="grid lg:grid-cols-2 gap-4">
             <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5">
               <p className="text-white text-sm leading-relaxed">
-                Voce esta no nivel <span className="text-blue-400 font-medium">START PRO GROWTH</span>.
+                Voce esta no nivel <span className="text-blue-400 font-medium">Start PRO GROWTH</span>.
               </p>
               <p className="text-zinc-400 text-sm mt-3 leading-relaxed">
                 Este estagio existe para construir a base operacional minima da sua operacao antes de qualquer tentativa de crescimento ou escala.
@@ -205,7 +205,7 @@ export function PlanContentPreview({
               
               <div className="flex flex-col items-start md:items-end gap-2">
                 <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 px-3 py-1 text-sm font-medium">
-                  PRO VERTEBRA
+                  Pro VÉRTEBRA
                 </Badge>
                 <p className="text-xs text-zinc-500">
                   Nivel atual - Operador com espinha dorsal
@@ -218,7 +218,7 @@ export function PlanContentPreview({
           <div className="grid lg:grid-cols-2 gap-4">
             <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5">
               <p className="text-white text-sm leading-relaxed">
-                Voce esta no nivel <span className="text-purple-400 font-medium">PRO VERTEBRA</span>.
+                Voce esta no nivel <span className="text-purple-400 font-medium">Pro VÉRTEBRA</span>.
               </p>
               <p className="text-zinc-400 text-sm mt-3 leading-relaxed">
                 Neste estagio, a operacao deixa de depender de sorte e passa a operar com estrutura, logica e previsibilidade.

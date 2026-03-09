@@ -14,21 +14,27 @@ async function getClientBySlug(slug: string) {
 }
 
 async function getWeeklyReports(clientId: string) {
-  return sql`
-    SELECT 
-      id,
-      report_date,
-      status,
-      summary,
-      actions_taken,
-      data_analysis,
-      decisions_made,
-      next_week_guidance,
-      created_at
-    FROM weekly_reports
-    WHERE client_id = ${clientId}
-    ORDER BY report_date DESC
-  `
+  try {
+    const result = await sql`
+      SELECT 
+        id,
+        COALESCE(report_date::text, '') as report_date,
+        COALESCE(status, 'estavel') as status,
+        COALESCE(summary, '') as summary,
+        actions_taken,
+        data_analysis,
+        decisions_made,
+        next_week_guidance,
+        created_at
+      FROM weekly_reports
+      WHERE client_id = ${clientId}::uuid
+      ORDER BY report_date DESC
+    `
+    return result || []
+  } catch (error) {
+    console.error("Error fetching weekly reports:", error)
+    return []
+  }
 }
 
 export default async function LeituraSemanalPage({
