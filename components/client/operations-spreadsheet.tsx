@@ -270,12 +270,12 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
           {MONTHS.map((month) => (
             <Button
               key={month.value}
-              variant={selectedMonth === month.value ? "default" : "outline"}
+              variant="ghost"
               size="sm"
               onClick={() => setSelectedMonth(month.value)}
               className={selectedMonth === month.value
-                ? "bg-[#A855F7] hover:bg-[#9333EA] text-white"
-                : "border-[rgba(255,255,255,0.1)] text-[rgba(245,245,247,0.72)] hover:bg-[rgba(255,255,255,0.05)]"
+                ? "bg-[#7B3FE4] hover:bg-[#6D28D9] text-white border border-[#7B3FE4]"
+                : "bg-transparent border border-[rgba(255,255,255,0.2)] text-[#F5F5F7] hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.3)]"
               }
             >
               {month.label}
