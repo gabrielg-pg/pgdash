@@ -52,15 +52,26 @@ interface SidebarProps {
   hasWeeklyReports?: boolean
 }
 
-const getClientNavItems = (slug: string) => [
-  { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
-  { href: `/dashboards/${slug}/mapa`, label: "Mapa da Operação", icon: Map },
-  { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
-  { href: `/dashboards/${slug}/acessos`, label: "Acessos", icon: Key },
-  { href: `/dashboards/${slug}/avisos`, label: "Avisos", icon: Bell },
-  { href: `/dashboards/${slug}/materiais`, label: "Materiais", icon: FolderOpen },
-  { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
-]
+import { TableIcon } from "lucide-react"
+
+const getClientNavItems = (slug: string, plan?: string) => {
+  const items = [
+    { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
+    { href: `/dashboards/${slug}/mapa`, label: "Mapa da Operação", icon: Map },
+    { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
+    { href: `/dashboards/${slug}/acessos`, label: "Acessos", icon: Key },
+    { href: `/dashboards/${slug}/avisos`, label: "Avisos", icon: Bell },
+    { href: `/dashboards/${slug}/materiais`, label: "Materiais", icon: FolderOpen },
+    { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
+  ]
+  
+  // Add "Operação" only for SCALE plan (Scale VÉRTEBRA+ GLOBAL)
+  if (plan?.toUpperCase() === "SCALE") {
+    items.splice(3, 0, { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: TableIcon })
+  }
+  
+  return items
+}
 
 const adminNavItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -92,7 +103,8 @@ export function DashboardSidebar({ user, slug, hasWeeklyReports }: SidebarProps)
   const { collapsed, setCollapsed, isMobileOpen, setMobileOpen } = useSidebar()
 
   const clientSlug = slug || user.client?.slug || ""
-  const allClientNavItems = getClientNavItems(clientSlug)
+  const clientPlan = user.client?.plan || ""
+  const allClientNavItems = getClientNavItems(clientSlug, clientPlan)
   
   // Filter out "Leitura Semanal" if client has no weekly reports
   const clientNavItems = user.role === "CLIENTE" && !hasWeeklyReports
