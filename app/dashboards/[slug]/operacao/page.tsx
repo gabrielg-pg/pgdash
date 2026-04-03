@@ -16,13 +16,15 @@ async function getClientBySlug(slug: string) {
   }
 }
 
-async function getOperations(clientId: string) {
+async function getOperations(clientId: string, month: number, year: number) {
   try {
     const result = await sql`
-      SELECT id, operation_date, obs, vendas, valor_vendas, adspend, cogs, created_at, updated_at
+      SELECT id, operation_date::text, vendas, valor_vendas, adspend, cogs
       FROM daily_operations
       WHERE client_id = ${clientId}::uuid
-      ORDER BY operation_date DESC
+        AND EXTRACT(MONTH FROM operation_date) = ${month}
+        AND EXTRACT(YEAR FROM operation_date) = ${year}
+      ORDER BY operation_date ASC
     `
     return result || []
   } catch (error) {
@@ -50,7 +52,10 @@ export default async function OperacaoPage({ params }: { params: Promise<{ slug:
     redirect(`/dashboards/${slug}`)
   }
 
-  const operations = await getOperations(client.id)
+  // Get current month data for initial load
+  const currentMonth = new Date().getMonth() + 1 // 1-12
+  const currentYear = 2026
+  const operations = await getOperations(client.id, currentMonth, currentYear)
 
   return (
     <div className="space-y-6">
