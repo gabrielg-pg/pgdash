@@ -156,10 +156,19 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
     }
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
+  const USD_TO_EUR = 0.92 // Fixed exchange rate
+
+  const formatEuro = (value: number) => {
+    return new Intl.NumberFormat('de-DE', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'EUR'
+    }).format(value)
+  }
+
+  const formatDollar = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
     }).format(value)
   }
 
@@ -219,13 +228,19 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
                   Vendas
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[140px]">
-                  Valor Vendas
+                  Valor Vendas (€)
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[140px]">
-                  Adspend
+                  Adspend (€)
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[140px]">
-                  COGS
+                  COGS ($)
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
+                  Câmbio USD→EUR
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[140px]">
+                  Lucro/Prejuízo
                 </th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[60px]">
                   Ações
@@ -235,7 +250,7 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
             <tbody>
               {operations.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-[rgba(245,245,247,0.52)]">
+                  <td colSpan={9} className="px-4 py-12 text-center text-[rgba(245,245,247,0.52)]">
                     Nenhum registro encontrado. Clique em &quot;Nova Linha&quot; para começar.
                   </td>
                 </tr>
@@ -297,6 +312,23 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
                         className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right"
                       />
                     </td>
+                    <td className="px-4 py-2">
+                      <div className="h-9 flex items-center justify-end text-[rgba(245,245,247,0.52)] bg-[rgba(255,255,255,0.03)] rounded-md px-3 border border-[rgba(255,255,255,0.06)]">
+                        {USD_TO_EUR}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      {(() => {
+                        const cogsInEur = (op.cogs || 0) * USD_TO_EUR
+                        const profit = (op.valor_vendas || 0) - (op.adspend || 0) - cogsInEur
+                        const isPositive = profit >= 0
+                        return (
+                          <div className={`h-9 flex items-center justify-end font-medium px-3 rounded-md ${isPositive ? 'text-emerald-400 bg-emerald-500/10' : 'text-red-400 bg-red-500/10'}`}>
+                            {formatEuro(profit)}
+                          </div>
+                        )
+                      })()}
+                    </td>
                     <td className="px-4 py-2 text-center">
                       <Button
                         variant="ghost"
@@ -315,24 +347,37 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
         </div>
         
         {/* Summary footer */}
-        {operations.length > 0 && (
-          <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-4 bg-[#0A0A0F]">
-            <div className="flex items-center justify-end gap-8 text-sm">
-              <div className="text-[rgba(245,245,247,0.52)]">
-                Total Vendas: <span className="text-[#F5F5F7] font-medium">{operations.reduce((sum, op) => sum + (op.vendas || 0), 0)}</span>
-              </div>
-              <div className="text-[rgba(245,245,247,0.52)]">
-                Valor Total: <span className="text-emerald-400 font-medium">{formatCurrency(operations.reduce((sum, op) => sum + (op.valor_vendas || 0), 0))}</span>
-              </div>
-              <div className="text-[rgba(245,245,247,0.52)]">
-                Total Adspend: <span className="text-amber-400 font-medium">{formatCurrency(operations.reduce((sum, op) => sum + (op.adspend || 0), 0))}</span>
-              </div>
-              <div className="text-[rgba(245,245,247,0.52)]">
-                Total COGS: <span className="text-red-400 font-medium">{formatCurrency(operations.reduce((sum, op) => sum + (op.cogs || 0), 0))}</span>
+        {operations.length > 0 && (() => {
+          const totalVendas = operations.reduce((sum, op) => sum + (op.vendas || 0), 0)
+          const totalValorVendas = operations.reduce((sum, op) => sum + (op.valor_vendas || 0), 0)
+          const totalAdspend = operations.reduce((sum, op) => sum + (op.adspend || 0), 0)
+          const totalCogs = operations.reduce((sum, op) => sum + (op.cogs || 0), 0)
+          const totalCogsInEur = totalCogs * USD_TO_EUR
+          const totalProfit = totalValorVendas - totalAdspend - totalCogsInEur
+          const isProfitPositive = totalProfit >= 0
+
+          return (
+            <div className="border-t border-[rgba(255,255,255,0.06)] px-4 py-4 bg-[#0A0A0F]">
+              <div className="flex items-center justify-end gap-8 text-sm flex-wrap">
+                <div className="text-[rgba(245,245,247,0.52)]">
+                  Total Vendas: <span className="text-[#F5F5F7] font-medium">{totalVendas}</span>
+                </div>
+                <div className="text-[rgba(245,245,247,0.52)]">
+                  Valor Total: <span className="text-emerald-400 font-medium">{formatEuro(totalValorVendas)}</span>
+                </div>
+                <div className="text-[rgba(245,245,247,0.52)]">
+                  Total Adspend: <span className="text-amber-400 font-medium">{formatEuro(totalAdspend)}</span>
+                </div>
+                <div className="text-[rgba(245,245,247,0.52)]">
+                  Total COGS: <span className="text-red-400 font-medium">{formatDollar(totalCogs)}</span>
+                </div>
+                <div className="text-[rgba(245,245,247,0.52)]">
+                  Lucro/Prejuízo: <span className={`font-medium ${isProfitPositive ? 'text-emerald-400' : 'text-red-400'}`}>{formatEuro(totalProfit)}</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
       </CardContent>
     </Card>
   )
