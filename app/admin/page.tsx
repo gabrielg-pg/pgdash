@@ -11,7 +11,7 @@ async function getAdminStats() {
   const [clients, users, accesses, notices] = await Promise.all([
     sql`SELECT COUNT(*) as total, 
         COUNT(*) FILTER (WHERE status = 'ACTIVE') as active,
-        COUNT(*) FILTER (WHERE plan = 'SCALE' OR plan = 'SCALE_GLOBAL') as scale,
+        COUNT(*) FILTER (WHERE plan = 'SCALE') as scale,
         COUNT(*) FILTER (WHERE plan = 'PRO') as pro,
         COUNT(*) FILTER (WHERE plan = 'START') as start
         FROM clients`,
@@ -39,14 +39,6 @@ const planColors: Record<string, string> = {
   START: "bg-[rgba(245,245,247,0.1)] text-[rgba(245,245,247,0.72)] border-[rgba(255,255,255,0.1)]",
   PRO: "bg-[rgba(168,85,247,0.15)] text-[#A855F7] border-[rgba(168,85,247,0.3)]",
   SCALE: "bg-gradient-to-r from-[rgba(168,85,247,0.2)] to-[rgba(124,58,237,0.15)] text-[#A855F7] border-[rgba(168,85,247,0.4)]",
-  SCALE_GLOBAL: "bg-gradient-to-r from-[rgba(245,158,11,0.2)] to-[rgba(249,115,22,0.15)] text-[#F59E0B] border-[rgba(245,158,11,0.4)]",
-}
-
-const planNames: Record<string, string> = {
-  START: "Start GROWTH",
-  PRO: "Pro VÉRTEBRA",
-  SCALE: "Scale VÉRTEBRA",
-  SCALE_GLOBAL: "Scale GLOBAL",
 }
 
 const statusColors: Record<string, string> = {
@@ -183,7 +175,7 @@ export default async function AdminDashboardPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`${planColors[client.plan]} rounded-full`}>
-                            {planNames[client.plan] || client.plan}
+                            {client.plan}
                           </Badge>
                           <Badge variant="outline" className={`${statusColors[client.status]} rounded-full`}>
                             {client.status}

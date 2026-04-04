@@ -108,10 +108,10 @@ function generateRawText(details: StoreDetails): string {
     .join("\n\n")
 
   const planProducts: Record<string, string> = {
-    "START": "30 produtos",
-    "PRO": "50 produtos",
-    "SCALE": "100 produtos",
-    "SCALE_GLOBAL": "100 produtos",
+    "Start PRO GROWTH": "30 produtos",
+    "Pro VÉRTEBRA": "50 produtos",
+    "Scale VÉRTEBRA+ BR": "100 produtos",
+    "Scale VÉRTEBRA+ GLOBAL": "100 produtos",
   }
 
   return `DADOS CLIENTE:

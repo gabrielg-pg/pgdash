@@ -172,10 +172,9 @@ export default function NewClientPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-[#101018] border-[rgba(255,255,255,0.06)]">
-                        <SelectItem value="START" className="text-[rgba(245,245,247,0.72)] focus:text-[#F5F5F7] focus:bg-[#141424]">Start GROWTH</SelectItem>
-                        <SelectItem value="PRO" className="text-[rgba(245,245,247,0.72)] focus:text-[#F5F5F7] focus:bg-[#141424]">Pro VÉRTEBRA</SelectItem>
-                        <SelectItem value="SCALE" className="text-[rgba(245,245,247,0.72)] focus:text-[#F5F5F7] focus:bg-[#141424]">Scale VÉRTEBRA</SelectItem>
-                        <SelectItem value="SCALE_GLOBAL" className="text-[rgba(245,245,247,0.72)] focus:text-[#F5F5F7] focus:bg-[#141424]">Scale GLOBAL</SelectItem>
+                        <SelectItem value="START" className="text-[rgba(245,245,247,0.72)] focus:text-[#F5F5F7] focus:bg-[#141424]">Start</SelectItem>
+                        <SelectItem value="PRO" className="text-[rgba(245,245,247,0.72)] focus:text-[#F5F5F7] focus:bg-[#141424]">Pro</SelectItem>
+                        <SelectItem value="SCALE" className="text-[rgba(245,245,247,0.72)] focus:text-[#F5F5F7] focus:bg-[#141424]">Scale</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

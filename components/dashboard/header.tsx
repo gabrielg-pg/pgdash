@@ -18,14 +18,6 @@ const planColors: Record<string, string> = {
   START: "bg-[rgba(245,245,247,0.1)] text-[rgba(245,245,247,0.72)] border-[rgba(255,255,255,0.1)]",
   PRO: "bg-[rgba(168,85,247,0.15)] text-[#A855F7] border-[rgba(168,85,247,0.3)]",
   SCALE: "bg-gradient-to-r from-[rgba(168,85,247,0.2)] to-[rgba(124,58,237,0.15)] text-[#A855F7] border-[rgba(168,85,247,0.4)]",
-  SCALE_GLOBAL: "bg-gradient-to-r from-[rgba(245,158,11,0.2)] to-[rgba(249,115,22,0.15)] text-[#F59E0B] border-[rgba(245,158,11,0.4)]",
-}
-
-const planNames: Record<string, string> = {
-  START: "Start GROWTH",
-  PRO: "Pro VÉRTEBRA",
-  SCALE: "Scale VÉRTEBRA",
-  SCALE_GLOBAL: "Scale GLOBAL",
 }
 
 const statusLabels: Record<string, string> = {
@@ -53,7 +45,7 @@ export function DashboardHeader({ title, subtitle, user }: HeaderProps) {
         {user?.client && (
           <div className="flex items-center gap-2 shrink-0">
             <Badge variant="outline" className={`${planColors[user.client.plan] || planColors.START} rounded-full px-3`}>
-              {planNames[user.client.plan] || user.client.plan}
+              {user.client.plan}
             </Badge>
             <Badge variant="outline" className={`${statusColors[user.client.status] || statusColors.ACTIVE} rounded-full px-3`}>
               {statusLabels[user.client.status] || user.client.status}

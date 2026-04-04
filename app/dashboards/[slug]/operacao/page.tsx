@@ -47,8 +47,8 @@ export default async function OperacaoPage({ params }: { params: Promise<{ slug:
     redirect("/login")
   }
 
-  // Check if client has Scale GLOBAL plan
-  if (client.plan !== "SCALE_GLOBAL") {
+  // Check if client has SCALE plan
+  if (client.plan?.toUpperCase() !== "SCALE") {
     redirect(`/dashboards/${slug}`)
   }
 

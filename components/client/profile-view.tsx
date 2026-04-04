@@ -109,15 +109,7 @@ export function ProfileView({ user, client, slug }: ProfileViewProps) {
   const planColors: Record<string, string> = {
     START: "bg-[#22C55E]/20 text-[#22C55E] border-[#22C55E]/30",
     PRO: "bg-[#A855F7]/20 text-[#A855F7] border-[#A855F7]/30",
-    SCALE: "bg-[#A855F7]/20 text-[#A855F7] border-[#A855F7]/30",
-    SCALE_GLOBAL: "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30",
-  }
-
-  const planNames: Record<string, string> = {
-    START: "Start GROWTH",
-    PRO: "Pro VÉRTEBRA",
-    SCALE: "Scale VÉRTEBRA",
-    SCALE_GLOBAL: "Scale GLOBAL",
+    SCALE: "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30",
   }
 
   return (
@@ -181,10 +173,10 @@ export function ProfileView({ user, client, slug }: ProfileViewProps) {
             <div className="flex items-center justify-between p-4 bg-[#171723] rounded-xl border border-[rgba(255,255,255,0.06)]">
               <div>
                 <p className="text-sm text-[rgba(245,245,247,0.52)]">Plano</p>
-                <p className="text-[#F5F5F7] font-medium">{planNames[client.plan] || client.plan}</p>
+                <p className="text-[#F5F5F7] font-medium">{client.plan}</p>
               </div>
               <Badge variant="outline" className={`${planColors[client.plan] || planColors.START} rounded-full`}>
-                {planNames[client.plan] || client.plan}
+                {client.plan}
               </Badge>
             </div>
             <div className="flex items-center justify-between p-4 bg-[#171723] rounded-xl border border-[rgba(255,255,255,0.06)]">
