@@ -60,7 +60,7 @@ export default async function OperacaoPage({ params }: { params: Promise<{ slug:
   return (
     <div className="space-y-6 pt-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#F5F5F7]">Operação</h1>
+        <h1 className="text-2xl font-bold text-[#F5F5F7] mb-2">Operação</h1>
         <p className="text-[rgba(245,245,247,0.52)]">
           Gerencie os dados diários da sua operação
         </p>
