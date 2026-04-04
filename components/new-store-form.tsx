@@ -37,10 +37,10 @@ const steps = [
 ]
 
 const plans = [
-  { id: "Start PRO GROWTH", name: "Start PRO GROWTH", products: 30, icon: TrendingUp, color: "text-emerald-500" },
-  { id: "Pro VÉRTEBRA", name: "Pro VÉRTEBRA", products: 50, icon: Brain, color: "text-purple-500" },
-  { id: "Scale VÉRTEBRA+ BR", name: "Scale VÉRTEBRA+ BR", products: 100, icon: Rocket, color: "text-blue-500" },
-  { id: "Scale VÉRTEBRA+ GLOBAL", name: "Scale VÉRTEBRA+ GLOBAL", products: 100, icon: Zap, color: "text-orange-500" },
+  { id: "START", name: "Start GROWTH", products: 30, icon: TrendingUp, color: "text-emerald-500" },
+  { id: "PRO", name: "Pro VÉRTEBRA", products: 50, icon: Brain, color: "text-purple-500" },
+  { id: "SCALE", name: "Scale VÉRTEBRA", products: 100, icon: Rocket, color: "text-blue-500" },
+  { id: "SCALE_GLOBAL", name: "Scale GLOBAL", products: 100, icon: Zap, color: "text-orange-500" },
 ]
 
 const accountsBrasil = [

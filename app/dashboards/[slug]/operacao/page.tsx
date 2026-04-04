@@ -47,8 +47,8 @@ export default async function OperacaoPage({ params }: { params: Promise<{ slug:
     redirect("/login")
   }
 
-  // Check if client has Scale VÉRTEBRA+ GLOBAL plan
-  if (client.plan !== "Scale VÉRTEBRA+ GLOBAL") {
+  // Check if client has Scale GLOBAL plan
+  if (client.plan !== "SCALE_GLOBAL") {
     redirect(`/dashboards/${slug}`)
   }
 

@@ -72,9 +72,10 @@ const statusOptions = [
 ]
 
 const planNames: Record<string, string> = {
-  START: "Start PRO GROWTH",
+  START: "Start GROWTH",
   PRO: "Pro VÉRTEBRA",
-  SCALE: "Scale VÉRTEBRA+ GLOBAL",
+  SCALE: "Scale VÉRTEBRA",
+  SCALE_GLOBAL: "Scale GLOBAL",
 }
 
 export function ClientStepsManager({ clients: initialClients, allSteps, initialProgress }: Props) {
@@ -229,7 +230,8 @@ export function ClientStepsManager({ clients: initialClients, allSteps, initialP
     switch (plan.toUpperCase()) {
       case "START": return "bg-blue-500/20 text-blue-400 border-blue-500/30"
       case "PRO": return "bg-purple-500/20 text-purple-400 border-purple-500/30"
-      case "SCALE": return "bg-amber-500/20 text-amber-400 border-amber-500/30"
+      case "SCALE": return "bg-purple-500/20 text-purple-400 border-purple-500/30"
+      case "SCALE_GLOBAL": return "bg-amber-500/20 text-amber-400 border-amber-500/30"
       default: return "bg-zinc-500/20 text-zinc-400 border-zinc-500/30"
     }
   }

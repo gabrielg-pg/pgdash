@@ -65,8 +65,8 @@ const getClientNavItems = (slug: string, plan?: string) => {
     { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
   ]
   
-  // Add "Operação" only for Scale VÉRTEBRA+ GLOBAL plan
-  if (plan === "Scale VÉRTEBRA+ GLOBAL") {
+  // Add "Operação" only for Scale GLOBAL plan
+  if (plan === "SCALE_GLOBAL") {
     items.splice(3, 0, { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: TableIcon })
   }
   
