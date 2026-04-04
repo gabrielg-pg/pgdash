@@ -357,34 +357,43 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
                         />
                       </td>
                       <td className="px-3 py-2">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={op.valor_vendas || ''}
-                          onChange={(e) => updateCell(index, 'valor_vendas', parseFloat(e.target.value) || 0)}
-                          className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full"
-                          placeholder="0.00"
-                        />
+                        <div className="relative flex items-center">
+                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">€</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={op.valor_vendas || ''}
+                            onChange={(e) => updateCell(index, 'valor_vendas', parseFloat(e.target.value) || 0)}
+                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full pl-7"
+                            placeholder="0.00"
+                          />
+                        </div>
                       </td>
                       <td className="px-3 py-2">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={op.adspend || ''}
-                          onChange={(e) => updateCell(index, 'adspend', parseFloat(e.target.value) || 0)}
-                          className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full"
-                          placeholder="0.00"
-                        />
+                        <div className="relative flex items-center">
+                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">€</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={op.adspend || ''}
+                            onChange={(e) => updateCell(index, 'adspend', parseFloat(e.target.value) || 0)}
+                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full pl-7"
+                            placeholder="0.00"
+                          />
+                        </div>
                       </td>
                       <td className="px-3 py-2">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={op.cogs || ''}
-                          onChange={(e) => updateCell(index, 'cogs', parseFloat(e.target.value) || 0)}
-                          className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full"
-                          placeholder="0.00"
-                        />
+                        <div className="relative flex items-center">
+                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={op.cogs || ''}
+                            onChange={(e) => updateCell(index, 'cogs', parseFloat(e.target.value) || 0)}
+                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full pl-7"
+                            placeholder="0.00"
+                          />
+                        </div>
                       </td>
                       <td className="px-3 py-2">
                         <div className="h-9 flex items-center justify-end text-[rgba(245,245,247,0.52)] text-sm">
