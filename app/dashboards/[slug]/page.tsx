@@ -109,9 +109,17 @@ export default async function DashboardSlugPage({
         <WelcomeBanner />
       </div>
 
+      <div className="p-4 md:p-6 lg:p-8">
+        <DashboardHeader
+          title={`Bem-vindo, ${session.name.split(" ")[0]}!`}
+          subtitle={client.name}
+          user={session}
+        />
+      </div>
+
       {/* Welcome Video */}
-      <div className="px-4 md:px-6 lg:px-8 pt-4">
-        <div className="w-full max-w-2xl aspect-video rounded-xl overflow-hidden border border-[rgba(255,255,255,0.06)]">
+      <div className="px-4 md:px-6 lg:px-8 pb-6 flex justify-center">
+        <div className="w-full max-w-[700px] aspect-video rounded-xl overflow-hidden border border-[rgba(255,255,255,0.06)]">
           <iframe
             title="vimeo-player"
             src="https://player.vimeo.com/video/1170383497?h=ce7013180f"
@@ -124,14 +132,6 @@ export default async function DashboardSlugPage({
             className="w-full h-full"
           />
         </div>
-      </div>
-
-      <div className="p-4 md:p-6 lg:p-8">
-        <DashboardHeader
-          title={`Bem-vindo, ${session.name.split(" ")[0]}!`}
-          subtitle={client.name}
-          user={session}
-        />
       </div>
 
       <div className="px-4 md:px-6 lg:px-8 pb-8 space-y-6">
