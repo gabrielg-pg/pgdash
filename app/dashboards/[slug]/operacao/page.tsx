@@ -58,7 +58,7 @@ export default async function OperacaoPage({ params }: { params: Promise<{ slug:
   const operations = await getOperations(client.id, currentMonth, currentYear)
 
   return (
-    <div className="space-y-6 pt-6">
+    <div className="space-y-6 pt-6 px-4 md:px-6 lg:px-8 pb-8">
       <div>
         <h1 className="text-2xl font-bold text-[#F5F5F7] mb-2">Operação</h1>
         <p className="text-[rgba(245,245,247,0.52)]">
