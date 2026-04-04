@@ -188,17 +188,19 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
   }
 
   const formatEuro = (value: number) => {
+    const safeValue = isNaN(value) || value === null || value === undefined ? 0 : value
     return new Intl.NumberFormat('de-DE', {
       style: 'currency',
       currency: 'EUR'
-    }).format(value)
+    }).format(safeValue)
   }
 
   const formatDollar = (value: number) => {
+    const safeValue = isNaN(value) || value === null || value === undefined ? 0 : value
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(value)
+    }).format(safeValue)
   }
 
   const calculateProfit = (op: Operation) => {
@@ -219,19 +221,39 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
 
   const hasChanges = operations.some(op => op.isModified)
 
-  // Calculate totals
+  // Calculate totals with safe number handling
+  const safeSum = (arr: Operation[], field: keyof Operation) => {
+    return arr.reduce((sum, op) => {
+      const val = Number(op[field]) || 0
+      return sum + val
+    }, 0)
+  }
+
+  const totalVendas = safeSum(operations, 'vendas')
+  const totalValorVendas = safeSum(operations, 'valor_vendas')
+  const totalAdspend = safeSum(operations, 'adspend')
+  const totalCogs = safeSum(operations, 'cogs')
+  const totalProfit = totalValorVendas - totalAdspend - (totalCogs * USD_TO_EUR)
+  
+  const opsWithSales = operations.filter(op => Number(op.valor_vendas) > 0)
+  const opsWithAdspend = operations.filter(op => Number(op.adspend) > 0)
+  
+  const avgProfitPercent = opsWithSales.length > 0
+    ? opsWithSales.reduce((sum, op) => sum + calculateProfitPercent(op), 0) / opsWithSales.length
+    : 0
+  
+  const avgRoas = opsWithAdspend.length > 0
+    ? opsWithAdspend.reduce((sum, op) => sum + calculateROAS(op), 0) / opsWithAdspend.length
+    : 0
+
   const totals = {
-    vendas: operations.reduce((sum, op) => sum + (op.vendas || 0), 0),
-    valor_vendas: operations.reduce((sum, op) => sum + (op.valor_vendas || 0), 0),
-    adspend: operations.reduce((sum, op) => sum + (op.adspend || 0), 0),
-    cogs: operations.reduce((sum, op) => sum + (op.cogs || 0), 0),
-    profit: operations.reduce((sum, op) => sum + calculateProfit(op), 0),
-    profitPercent: operations.length > 0 
-      ? operations.reduce((sum, op) => sum + calculateProfitPercent(op), 0) / operations.filter(op => op.valor_vendas > 0).length || 0
-      : 0,
-    roas: operations.length > 0
-      ? operations.reduce((sum, op) => sum + calculateROAS(op), 0) / operations.filter(op => op.adspend > 0).length || 0
-      : 0
+    vendas: totalVendas,
+    valor_vendas: totalValorVendas,
+    adspend: totalAdspend,
+    cogs: totalCogs,
+    profit: totalProfit,
+    profitPercent: isNaN(avgProfitPercent) ? 0 : avgProfitPercent,
+    roas: isNaN(avgRoas) ? 0 : avgRoas
   }
 
   const selectedMonthName = MONTHS[selectedMonth].label.toUpperCase()
