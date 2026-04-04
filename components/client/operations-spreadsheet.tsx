@@ -301,31 +301,31 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[rgba(255,255,255,0.06)] bg-[#0A0A0F]">
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
                     Data
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[80px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[80px]">
                     Vendas
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
                     Valor Vendas (€)
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
                     Adspend (€)
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
                     COGS ($)
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
                     Câmbio
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[130px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[130px]">
                     Lucro/Prejuízo (€)
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
                     Lucro (%)
                   </th>
-                  <th className="px-3 py-3 text-right text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[80px]">
+                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[80px]">
                     ROAS
                   </th>
                 </tr>
