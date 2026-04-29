@@ -122,7 +122,7 @@ export default async function DashboardSlugPage({
         <div className="w-full max-w-[700px] aspect-video rounded-xl overflow-hidden border border-[rgba(255,255,255,0.06)]">
           <iframe
             title="vimeo-player"
-            src="https://player.vimeo.com/video/1170383497?h=ce7013180f"
+            src="https://player.vimeo.com/video/1180982090?h=751e8cf86c"
             width="100%"
             height="100%"
             frameBorder="0"
