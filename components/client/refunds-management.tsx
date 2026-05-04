@@ -395,9 +395,10 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
             </div>
           </ScrollArea>
         </CardContent>
+        </Card>
         
         {/* Month tabs */}
-        <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
+        <div className="p-4 bg-[#101018] border border-[rgba(255,255,255,0.06)] rounded-xl">
           <div className="flex flex-wrap gap-2">
             {MONTHS.map((month) => (
               <Button
@@ -415,7 +416,6 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
             ))}
           </div>
         </div>
-        </Card>
       </div>
 
       {/* RIGHT PANEL - Support reference */}
