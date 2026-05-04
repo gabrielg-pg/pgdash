@@ -69,7 +69,7 @@ const getClientNavItems = (slug: string, plan?: string) => {
   if (plan?.toUpperCase() === "SCALE") {
     items.splice(3, 0, { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: TableIcon })
     items.splice(4, 0, { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw })
-    items.splice(5, 0, { href: `/dashboards/${slug}/emails`, label: "E-mails", icon: Mail })
+    items.splice(5, 0, { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail })
   }
   
   return items
