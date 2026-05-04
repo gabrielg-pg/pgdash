@@ -20,8 +20,24 @@ interface Refund {
   precoPago: string
   motivoDevolucao: string
   tipoResolucao: string
+  valorReembolsado: string
   estado: string
 }
+
+const MONTHS = [
+  { value: 0, label: "Janeiro" },
+  { value: 1, label: "Fevereiro" },
+  { value: 2, label: "Março" },
+  { value: 3, label: "Abril" },
+  { value: 4, label: "Maio" },
+  { value: 5, label: "Junho" },
+  { value: 6, label: "Julho" },
+  { value: 7, label: "Agosto" },
+  { value: 8, label: "Setembro" },
+  { value: 9, label: "Outubro" },
+  { value: 10, label: "Novembro" },
+  { value: 11, label: "Dezembro" },
+]
 
 const motivosOptions = [
   "Defeito comprovado",
@@ -80,43 +96,18 @@ interface RefundsManagementProps {
 }
 
 export function RefundsManagement({ clientId }: RefundsManagementProps) {
-  const [refunds, setRefunds] = useState<Refund[]>([
-    {
-      id: "1",
-      idReembolso: "REM-001",
-      dataCompra: "15/04/2026",
-      nomeCliente: "Maria Silva",
-      email: "maria@email.com",
-      numEncomenda: "ORD-12345",
-      nomePeca: "Vestido Floral",
-      tamanho: "M",
-      precoPago: "89.90",
-      motivoDevolucao: "Tamanho errado (loja)",
-      tipoResolucao: "Troca",
-      estado: "Em análise"
-    },
-    {
-      id: "2",
-      idReembolso: "REM-002",
-      dataCompra: "18/04/2026",
-      nomeCliente: "Ana Costa",
-      email: "ana@email.com",
-      numEncomenda: "ORD-12378",
-      nomePeca: "Blusa Renda",
-      tamanho: "S",
-      precoPago: "45.00",
-      motivoDevolucao: "Defeito comprovado",
-      tipoResolucao: "Reembolso",
-      estado: "Resolvido"
-    }
-  ])
+  const currentMonth = new Date().getMonth()
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+  const [refunds, setRefunds] = useState<Refund[]>([])
 
   const addNewRow = () => {
     const nextId = refunds.length + 1
+    const today = new Date()
+    const todayStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`
     const newRefund: Refund = {
       id: String(Date.now()),
       idReembolso: `REM-${String(nextId).padStart(3, '0')}`,
-      dataCompra: "",
+      dataCompra: todayStr,
       nomeCliente: "",
       email: "",
       numEncomenda: "",
@@ -125,10 +116,20 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
       precoPago: "",
       motivoDevolucao: "",
       tipoResolucao: "",
+      valorReembolsado: "",
       estado: "Pendente"
     }
     setRefunds([...refunds, newRefund])
   }
+
+  // Filter refunds by selected month
+  const filteredRefunds = refunds.filter(r => {
+    if (!r.dataCompra) return selectedMonth === currentMonth
+    const parts = r.dataCompra.split('/')
+    if (parts.length !== 3) return false
+    const month = parseInt(parts[1], 10) - 1
+    return month === selectedMonth
+  })
 
   const updateRefund = (id: string, field: keyof Refund, value: string) => {
     setRefunds(refunds.map(r => r.id === id ? { ...r, [field]: value } : r))
@@ -152,15 +153,15 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
     }
   }
 
-  // Calculate stats
-  const totalReembolsos = refunds.length
-  const totalReembolsado = refunds.reduce((sum, r) => {
-    const val = parseFloat(r.precoPago) || 0
+  // Calculate stats from filtered refunds
+  const totalReembolsos = filteredRefunds.length
+  const totalReembolsado = filteredRefunds.reduce((sum, r) => {
+    const val = parseFloat(r.valorReembolsado) || 0
     return sum + val
   }, 0)
-  const pendentes = refunds.filter(r => r.estado === "Pendente").length
-  const resolvidos = refunds.filter(r => r.estado === "Resolvido").length
-  const negados = refunds.filter(r => r.estado === "Negado").length
+  const pendentes = filteredRefunds.filter(r => r.estado === "Pendente").length
+  const resolvidos = filteredRefunds.filter(r => r.estado === "Resolvido").length
+  const negados = filteredRefunds.filter(r => r.estado === "Negado").length
 
   return (
     <div className="flex gap-6 h-[calc(100vh-180px)]">
@@ -190,14 +191,23 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
           </div>
         </div>
 
-        <Card className="flex-1 bg-[#101018] border-[rgba(255,255,255,0.06)] overflow-hidden">
+        <Card className="flex-1 bg-[#101018] border-[rgba(255,255,255,0.06)] overflow-hidden flex flex-col">
           <CardHeader className="bg-[#1a2744] py-3 px-4">
-            <CardTitle className="text-white text-sm font-semibold">Tabela de Reembolsos</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-white text-sm font-semibold">Tabela de Reembolsos</CardTitle>
+              <Button
+                onClick={addNewRow}
+                size="sm"
+                className="bg-[#A855F7] hover:bg-[#9333EA] text-white h-7 w-7 p-0"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-280px)]">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1400px]">
+              <table className="w-full min-w-[1550px]">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-[#1a2744] text-white text-xs font-medium">
                     <th className="px-3 py-3 text-left whitespace-nowrap">ID Reembolso</th>
@@ -210,11 +220,12 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
                     <th className="px-3 py-3 text-left whitespace-nowrap">Preço Pago (€)</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Motivo Devolução</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Tipo Resolução</th>
+                    <th className="px-3 py-3 text-left whitespace-nowrap">Valor Reembolsado (€)</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {refunds.map((refund, index) => (
+                  {filteredRefunds.map((refund, index) => (
                     <tr 
                       key={refund.id} 
                       className={index % 2 === 0 ? "bg-[#0A0A0F]" : "bg-[#101018]"}
@@ -314,6 +325,17 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
                         </Select>
                       </td>
                       <td className="px-3 py-2">
+                        <div className="relative flex items-center">
+                          <span className="absolute left-2 text-[rgba(255,255,255,0.5)] text-sm">€</span>
+                          <Input
+                            value={refund.valorReembolsado}
+                            onChange={(e) => updateRefund(refund.id, "valorReembolsado", e.target.value)}
+                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-8 text-sm w-28 pl-6"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-3 py-2">
                         <Select
                           value={refund.estado}
                           onValueChange={(value) => updateRefund(refund.id, "estado", value)}
@@ -336,16 +358,27 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
               </table>
             </div>
           </ScrollArea>
-          <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
-            <Button
-              onClick={addNewRow}
-              className="bg-[#A855F7] hover:bg-[#9333EA] text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Linha
-            </Button>
-          </div>
         </CardContent>
+        
+        {/* Month tabs */}
+        <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
+          <div className="flex flex-wrap gap-2">
+            {MONTHS.map((month) => (
+              <Button
+                key={month.value}
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMonth(month.value)}
+                className={selectedMonth === month.value
+                  ? "bg-[#7B3FE4] hover:bg-[#6D28D9] text-white border border-[#7B3FE4]"
+                  : "bg-transparent border border-[rgba(255,255,255,0.2)] text-[#F5F5F7] hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(255,255,255,0.3)]"
+                }
+              >
+                {month.label}
+              </Button>
+            ))}
+          </div>
+        </div>
         </Card>
       </div>
 
