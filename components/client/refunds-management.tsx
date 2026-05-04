@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Plus, Save, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react"
+import { Plus, Save, CheckCircle2, XCircle, Clock, AlertTriangle, Info } from "lucide-react"
 
 interface Refund {
   id: string
