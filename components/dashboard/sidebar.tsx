@@ -52,7 +52,7 @@ interface SidebarProps {
   hasWeeklyReports?: boolean
 }
 
-import { TableIcon, RotateCcw } from "lucide-react"
+import { TableIcon, RotateCcw, Mail } from "lucide-react"
 
 const getClientNavItems = (slug: string, plan?: string) => {
   const items = [
@@ -65,10 +65,11 @@ const getClientNavItems = (slug: string, plan?: string) => {
     { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
   ]
   
-  // Add "Operação" and "Reembolsos" only for SCALE plan (Scale VÉRTEBRA+ GLOBAL)
+  // Add "Operação", "Reembolsos" and "E-mails" only for SCALE plan (Scale VÉRTEBRA+ GLOBAL)
   if (plan?.toUpperCase() === "SCALE") {
     items.splice(3, 0, { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: TableIcon })
     items.splice(4, 0, { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw })
+    items.splice(5, 0, { href: `/dashboards/${slug}/emails`, label: "E-mails", icon: Mail })
   }
   
   return items
