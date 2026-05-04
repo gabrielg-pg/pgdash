@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Plus, Save, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 
 interface Refund {
   id: string
@@ -100,7 +99,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   const currentMonth = new Date().getMonth()
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [refunds, setRefunds] = useState<Refund[]>([])
-  const { toast } = useToast()
+  const [saveMessage, setSaveMessage] = useState("")
 
   const STORAGE_KEY = `refunds_${clientId}`
 
@@ -120,10 +119,8 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   // Save to localStorage
   const saveToLocalStorage = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(refunds))
-    toast({
-      title: "Salvo com sucesso",
-      description: `${refunds.length} registro(s) salvo(s).`
-    })
+    setSaveMessage("Salvo!")
+    setTimeout(() => setSaveMessage(""), 2000)
   }
 
   const addNewRow = () => {
@@ -235,7 +232,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
                   className="bg-gradient-to-r from-[#A855F7] to-[#7C3AED] hover:from-[#9333EA] hover:to-[#6D28D9] text-white h-7 px-3"
                 >
                   <Save className="h-4 w-4 mr-1" />
-                  Salvar
+                  {saveMessage || "Salvar"}
                 </Button>
               </div>
             </div>
