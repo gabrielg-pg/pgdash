@@ -26,8 +26,8 @@ interface Refund {
 const motivosOptions = [
   "Defeito comprovado",
   "Artigo incorreto",
-  "Tamanho errado — Éloren",
-  "Tamanho errado — cliente",
+  "Tamanho errado (loja)",
+  "Tamanho errado (cliente)",
   "Mudança de ideia",
   "Artigo em promoção",
   "Pedido fora do prazo",
@@ -57,8 +57,8 @@ const estadosOptions = [
 const criteriosElegibilidade = [
   { situacao: "Defeito comprovado", decisao: "REEMBOLSO/REENVIO", status: "approved", icon: CheckCircle2 },
   { situacao: "Artigo incorreto", decisao: "REENVIO GRATUITO", status: "approved", icon: CheckCircle2 },
-  { situacao: "Tamanho errado Éloren", decisao: "REEMBOLSO/TROCA", status: "approved", icon: CheckCircle2 },
-  { situacao: "Tamanho errado cliente", decisao: "NEGADO + voucher", status: "denied", icon: XCircle },
+  { situacao: "Tamanho errado (loja)", decisao: "REEMBOLSO/TROCA", status: "approved", icon: CheckCircle2 },
+  { situacao: "Tamanho errado (cliente)", decisao: "NEGADO + voucher", status: "denied", icon: XCircle },
   { situacao: "Mudança de ideia", decisao: "NEGADO", status: "denied", icon: XCircle },
   { situacao: "Artigo em promoção", decisao: "NEGADO", status: "denied", icon: XCircle },
   { situacao: "Pedido fora do prazo", decisao: "NEGADO", status: "denied", icon: XCircle },
@@ -91,7 +91,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
       nomePeca: "Vestido Floral",
       tamanho: "M",
       precoPago: "89.90",
-      motivoDevolucao: "Tamanho errado — Éloren",
+      motivoDevolucao: "Tamanho errado (loja)",
       tipoResolucao: "Troca",
       estado: "Em análise"
     },
@@ -152,13 +152,48 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
     }
   }
 
+  // Calculate stats
+  const totalReembolsos = refunds.length
+  const totalReembolsado = refunds.reduce((sum, r) => {
+    const val = parseFloat(r.precoPago) || 0
+    return sum + val
+  }, 0)
+  const pendentes = refunds.filter(r => r.estado === "Pendente").length
+  const resolvidos = refunds.filter(r => r.estado === "Resolvido").length
+  const negados = refunds.filter(r => r.estado === "Negado").length
+
   return (
     <div className="flex gap-6 h-[calc(100vh-180px)]">
       {/* LEFT PANEL - Main refunds table */}
-      <Card className="flex-1 bg-[#101018] border-[rgba(255,255,255,0.06)] overflow-hidden">
-        <CardHeader className="bg-[#1a2744] py-3 px-4">
-          <CardTitle className="text-white text-sm font-semibold">Tabela de Reembolsos</CardTitle>
-        </CardHeader>
+      <div className="flex-1 flex flex-col gap-4">
+        {/* Stats Bar */}
+        <div className="flex gap-3">
+          <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
+            <p className="text-white text-2xl font-bold">{totalReembolsos}</p>
+            <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">Total Reembolsos</p>
+          </div>
+          <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
+            <p className="text-white text-2xl font-bold">{totalReembolsado.toFixed(2)} €</p>
+            <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">Total Reembolsado</p>
+          </div>
+          <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
+            <p className="text-amber-400 text-2xl font-bold">{pendentes}</p>
+            <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">Pendentes</p>
+          </div>
+          <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
+            <p className="text-emerald-400 text-2xl font-bold">{resolvidos}</p>
+            <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">Resolvidos</p>
+          </div>
+          <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
+            <p className="text-red-400 text-2xl font-bold">{negados}</p>
+            <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">Negados</p>
+          </div>
+        </div>
+
+        <Card className="flex-1 bg-[#101018] border-[rgba(255,255,255,0.06)] overflow-hidden">
+          <CardHeader className="bg-[#1a2744] py-3 px-4">
+            <CardTitle className="text-white text-sm font-semibold">Tabela de Reembolsos</CardTitle>
+          </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-280px)]">
             <div className="overflow-x-auto">
@@ -311,7 +346,8 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
             </Button>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       {/* RIGHT PANEL - Support reference */}
       <div className="w-80 flex flex-col gap-4 shrink-0">
