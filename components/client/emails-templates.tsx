@@ -942,12 +942,6 @@ export function EmailsTemplates({ clientId }: EmailsTemplatesProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-[#F5F5F7]">E-mails</h1>
-        <p className="text-[rgba(245,245,247,0.52)]">Templates de respostas para e-mails e redes sociais</p>
-      </div>
-
       {/* Country Selector */}
       <div className="flex flex-wrap gap-2">
         {COUNTRIES.map((country) => (
