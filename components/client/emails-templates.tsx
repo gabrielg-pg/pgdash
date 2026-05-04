@@ -1195,6 +1195,17 @@ export function EmailsTemplates({ clientId }: EmailsTemplatesProps) {
   const instagramMessages = INSTAGRAM_MESSAGES[selectedCountry] || INSTAGRAM_MESSAGES.PT
   const emailTemplates = EMAIL_TEMPLATES[selectedCountry] || EMAIL_TEMPLATES.PT
 
+  // Function to highlight text inside square brackets in red
+  const highlightBrackets = (text: string) => {
+    const parts = text.split(/(\[[^\]]+\])/g)
+    return parts.map((part, i) => {
+      if (part.startsWith('[') && part.endsWith(']')) {
+        return <span key={i} className="text-red-400 font-medium">{part}</span>
+      }
+      return part
+    })
+  }
+
   const copyToClipboard = async (text: string, index: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -1234,7 +1245,7 @@ export function EmailsTemplates({ clientId }: EmailsTemplatesProps) {
                 )}
               </Button>
             </div>
-            <p className="text-sm text-[rgba(245,245,247,0.72)] whitespace-pre-wrap">{version.text}</p>
+            <p className="text-sm text-[rgba(245,245,247,0.72)] whitespace-pre-wrap">{highlightBrackets(version.text)}</p>
           </div>
         ))}
         {part.tip && (
@@ -1247,7 +1258,7 @@ export function EmailsTemplates({ clientId }: EmailsTemplatesProps) {
     </Card>
   )
 
-  const EmailCard = ({ template, index, section }: { template: typeof emailTemplates.refund[0]; index: number; section: string }) => (
+  const EmailCard = ({ template, index, section }: { template: { label: string; subject: string; body: string; tip?: string }; index: number; section: string }) => (
     <div className="p-4 bg-[#0B0B10] rounded-xl border border-[rgba(255,255,255,0.06)]">
       <div className="mb-3">
         <span className="text-xs font-medium text-[#A855F7]">{template.label}</span>
@@ -1276,7 +1287,7 @@ export function EmailsTemplates({ clientId }: EmailsTemplatesProps) {
             )}
           </Button>
         </div>
-        <p className="text-sm text-[#F5F5F7] font-medium">{template.subject}</p>
+        <p className="text-sm text-[#F5F5F7] font-medium">{highlightBrackets(template.subject)}</p>
       </div>
       
       {/* Body */}
@@ -1302,7 +1313,7 @@ export function EmailsTemplates({ clientId }: EmailsTemplatesProps) {
             )}
           </Button>
         </div>
-        <p className="text-sm text-[rgba(245,245,247,0.72)] whitespace-pre-wrap">{template.body}</p>
+        <p className="text-sm text-[rgba(245,245,247,0.72)] whitespace-pre-wrap">{highlightBrackets(template.body)}</p>
       </div>
       
       {/* Tip */}
