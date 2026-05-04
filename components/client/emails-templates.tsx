@@ -11,15 +11,15 @@ interface EmailsTemplatesProps {
 }
 
 const COUNTRIES = [
-  { code: "PT", flag: "🇵🇹", name: "Portugal" },
-  { code: "BR", flag: "🇧🇷", name: "Brasil" },
-  { code: "ES", flag: "🇪🇸", name: "Espanha" },
-  { code: "GB", flag: "🇬🇧", name: "Reino Unido" },
-  { code: "US", flag: "🇺🇸", name: "Estados Unidos" },
-  { code: "CA", flag: "🇨🇦", name: "Canadá" },
-  { code: "IT", flag: "🇮🇹", name: "Italia" },
-  { code: "FR", flag: "🇫🇷", name: "França" },
-  { code: "DE", flag: "🇩🇪", name: "Alemanha" },
+  { code: "PT", name: "Portugal", flagUrl: "https://flagcdn.com/w40/pt.png" },
+  { code: "BR", name: "Brasil", flagUrl: "https://flagcdn.com/w40/br.png" },
+  { code: "ES", name: "Espanha", flagUrl: "https://flagcdn.com/w40/es.png" },
+  { code: "GB", name: "Reino Unido", flagUrl: "https://flagcdn.com/w40/gb.png" },
+  { code: "US", name: "Estados Unidos", flagUrl: "https://flagcdn.com/w40/us.png" },
+  { code: "CA", name: "Canadá", flagUrl: "https://flagcdn.com/w40/ca.png" },
+  { code: "IT", name: "Italia", flagUrl: "https://flagcdn.com/w40/it.png" },
+  { code: "FR", name: "França", flagUrl: "https://flagcdn.com/w40/fr.png" },
+  { code: "DE", name: "Alemanha", flagUrl: "https://flagcdn.com/w40/de.png" },
 ]
 
 interface MessagePart {
@@ -272,7 +272,7 @@ Equipe de Apoio ao Cliente — [nome da marca]
     ],
     legal: [
       {
-        label: "⚖️ AMEAÇA COM ADVOGADO — RESPOSTA FORMAL",
+        label: "⚖️ AMEAÇA COM ADVOGADO �� RESPOSTA FORMAL",
         subject: "Re: Encomenda #[nº_encomenda] — Resposta Formal",
         body: `Exma. Sr.ª [nome],
 
@@ -514,19 +514,23 @@ export function EmailsTemplates({ clientId }: EmailsTemplatesProps) {
       {/* Country Selector */}
       <div className="flex flex-wrap gap-2">
         {COUNTRIES.map((country) => (
-          <Button
+          <button
             key={country.code}
-            variant="ghost"
-            size="sm"
             onClick={() => setSelectedCountry(country.code)}
-            className={selectedCountry === country.code
-              ? "bg-[#7B3FE4] hover:bg-[#6D28D9] text-white"
-              : "bg-[#101018] border border-[rgba(255,255,255,0.1)] text-[#F5F5F7] hover:bg-[#141424]"
-            }
+            title={country.name}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
+              selectedCountry === country.code
+                ? "bg-[#7B3FE4] ring-2 ring-[#A855F7] ring-offset-2 ring-offset-[#0B0B10]"
+                : "bg-[#101018] border border-[rgba(255,255,255,0.1)] hover:bg-[#141424] hover:border-[rgba(255,255,255,0.2)]"
+            }`}
           >
-            <span className="mr-2">{country.flag}</span>
-            {country.code}
-          </Button>
+            <img 
+              src={country.flagUrl} 
+              alt={country.name}
+              className="w-6 h-4 object-cover rounded-sm"
+            />
+            <span className="text-sm font-medium text-[#F5F5F7]">{country.code}</span>
+          </button>
         ))}
       </div>
 
