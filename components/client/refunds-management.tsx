@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Plus, Info, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react"
+import { Plus, Save, CheckCircle2, XCircle, Clock, AlertTriangle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Refund {
   id: string
@@ -99,6 +100,31 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   const currentMonth = new Date().getMonth()
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [refunds, setRefunds] = useState<Refund[]>([])
+  const { toast } = useToast()
+
+  const STORAGE_KEY = `refunds_${clientId}`
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        setRefunds(parsed)
+      } catch {
+        // Invalid JSON, ignore
+      }
+    }
+  }, [STORAGE_KEY])
+
+  // Save to localStorage
+  const saveToLocalStorage = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(refunds))
+    toast({
+      title: "Salvo com sucesso",
+      description: `${refunds.length} registro(s) salvo(s).`
+    })
+  }
 
   const addNewRow = () => {
     const nextId = refunds.length + 1
@@ -195,13 +221,23 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
           <CardHeader className="bg-[#1a2744] py-3 px-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-white text-sm font-semibold">Tabela de Reembolsos</CardTitle>
-              <Button
-                onClick={addNewRow}
-                size="sm"
-                className="bg-[#A855F7] hover:bg-[#9333EA] text-white h-7 w-7 p-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={addNewRow}
+                  size="sm"
+                  className="bg-[#A855F7] hover:bg-[#9333EA] text-white h-7 w-7 p-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={saveToLocalStorage}
+                  size="sm"
+                  className="bg-gradient-to-r from-[#A855F7] to-[#7C3AED] hover:from-[#9333EA] hover:to-[#6D28D9] text-white h-7 px-3"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  Salvar
+                </Button>
+              </div>
             </div>
           </CardHeader>
         <CardContent className="p-0">
