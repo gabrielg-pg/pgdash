@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Plus, Save, CheckCircle2, XCircle, Clock, AlertTriangle, Info, Loader2 } from "lucide-react"
+import { Plus, Save, Loader2 } from "lucide-react"
 import { getRefunds, saveAllRefunds, type RefundData } from "@/app/actions/refunds"
 
 interface Refund {
@@ -71,26 +71,7 @@ const estadosOptions = [
   "Negado"
 ]
 
-const criteriosElegibilidade = [
-  { situacao: "Defeito comprovado", decisao: "REEMBOLSO/REENVIO", status: "approved", icon: CheckCircle2 },
-  { situacao: "Artigo incorreto", decisao: "REENVIO GRATUITO", status: "approved", icon: CheckCircle2 },
-  { situacao: "Tamanho errado (loja)", decisao: "REEMBOLSO/TROCA", status: "approved", icon: CheckCircle2 },
-  { situacao: "Tamanho errado (cliente)", decisao: "NEGADO + voucher", status: "denied", icon: XCircle },
-  { situacao: "Mudança de ideia", decisao: "NEGADO", status: "denied", icon: XCircle },
-  { situacao: "Artigo em promoção", decisao: "NEGADO", status: "denied", icon: XCircle },
-  { situacao: "Pedido fora do prazo", decisao: "NEGADO", status: "denied", icon: XCircle },
-  { situacao: "Encomenda atrasada", decisao: "INVESTIGAR", status: "pending", icon: Clock },
-  { situacao: "Marcada entregue nega", decisao: "VERIFICAR transportadora", status: "pending", icon: Clock },
-  { situacao: "Ameaça legal", decisao: "JURÍDICO", status: "neutral", icon: AlertTriangle },
-  { situacao: "Ameaça redes sociais", decisao: "CALMA E FIRMEZA", status: "neutral", icon: AlertTriangle },
-]
 
-const instrucoesPreenchimento = [
-  { campo: "ID Reembolso", descricao: "Número sequencial", exemplo: "REM-001" },
-  { campo: "Datas", descricao: "Formato DD/MM/AAAA", exemplo: "15/04/2026" },
-  { campo: "Motivo", descricao: "Escolher da lista", exemplo: "Tamanho errado" },
-  { campo: "Tipo Resolução", descricao: "Escolher da lista", exemplo: "Reenvio gratuito" },
-]
 
 interface RefundsManagementProps {
   clientId: string
@@ -137,7 +118,9 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
 
   // Save to database
   const saveToDatabase = () => {
+    console.log("[v0] Save button clicked, refunds to save:", refunds.length)
     startTransition(async () => {
+      console.log("[v0] Starting save transition")
       const refundsToSave: RefundData[] = refunds.map(r => ({
         client_slug: clientId,
         id_reembolso: r.idReembolso,
@@ -154,7 +137,9 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
         estado: r.estado
       }))
       
+      console.log("[v0] Calling saveAllRefunds with clientId:", clientId, "refundsToSave:", refundsToSave)
       const result = await saveAllRefunds(clientId, refundsToSave)
+      console.log("[v0] Save result:", result)
       
       if (result.success) {
         setSaveMessage("Salvo!")
@@ -228,14 +213,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
     }
   }
 
-  const getCriterioColor = (status: string) => {
-    switch (status) {
-      case "approved": return "text-emerald-400"
-      case "denied": return "text-red-400"
-      case "pending": return "text-amber-400"
-      default: return "text-[rgba(245,245,247,0.52)]"
-    }
-  }
+
 
   // Calculate stats from filtered refunds
   const totalReembolsos = filteredRefunds.length
@@ -256,9 +234,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   }
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-180px)]">
-      {/* LEFT PANEL - Main refunds table */}
-      <div className="flex-1 flex flex-col gap-4">
+    <div className="flex flex-col gap-4 h-[calc(100vh-180px)]">
         {/* Stats Bar */}
         <div className="flex gap-3">
           <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
@@ -487,79 +463,6 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* RIGHT PANEL - Support reference */}
-      <div className="w-80 flex flex-col gap-4 shrink-0">
-        {/* Instruções de Preenchimento */}
-        <Card className="bg-[#101018] border-[rgba(255,255,255,0.06)]">
-          <CardHeader className="py-3 px-4 bg-[#1a2744]">
-            <CardTitle className="text-white text-xs font-semibold uppercase tracking-wider">
-              Instruções de Preenchimento
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="text-[rgba(245,245,247,0.52)] border-b border-[rgba(255,255,255,0.06)]">
-                  <th className="text-left py-1.5 font-medium">Campo</th>
-                  <th className="text-left py-1.5 font-medium">Descrição</th>
-                  <th className="text-left py-1.5 font-medium">Exemplo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {instrucoesPreenchimento.map((item, index) => (
-                  <tr key={index} className="border-b border-[rgba(255,255,255,0.04)]">
-                    <td className="py-1.5 text-[#F5F5F7]">{item.campo}</td>
-                    <td className="py-1.5 text-[rgba(245,245,247,0.52)]">{item.descricao}</td>
-                    <td className="py-1.5 text-[#A855F7]">{item.exemplo}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-
-        {/* Critérios de Elegibilidade */}
-        <Card className="bg-[#101018] border-[rgba(255,255,255,0.06)]">
-          <CardHeader className="py-3 px-4 bg-[#1a2744]">
-            <CardTitle className="text-white text-xs font-semibold uppercase tracking-wider">
-              Critérios de Elegibilidade
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3">
-            <div className="space-y-1.5 text-xs">
-              {criteriosElegibilidade.map((item, index) => {
-                const Icon = item.icon
-                return (
-                  <div key={index} className="flex items-center gap-2 py-1">
-                    <Icon className={`h-3.5 w-3.5 shrink-0 ${getCriterioColor(item.status)}`} />
-                    <span className="text-[rgba(245,245,247,0.72)]">{item.situacao}</span>
-                    <span className="text-[rgba(245,245,247,0.32)] mx-1">→</span>
-                    <span className={getCriterioColor(item.status)}>{item.decisao}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Bundle Info */}
-        <Card className="bg-[#101018] border-[rgba(255,255,255,0.06)]">
-          <CardHeader className="py-3 px-4 bg-[#1a2744]">
-            <CardTitle className="text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-              <Info className="h-3.5 w-3.5" />
-              Bundles e Kits
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-3">
-            <p className="text-xs text-[rgba(245,245,247,0.52)]">
-              Para bundles/kits, cada peça deve ter uma linha separada. 
-              O valor do reembolso deve ser proporcional ao preço individual do item no bundle.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
