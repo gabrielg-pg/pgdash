@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Plus, Save, Loader2, Trash2 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { getRefunds, saveAllRefunds, type RefundData } from "@/app/actions/refunds"
@@ -170,11 +169,15 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   const addNewRow = () => {
     const nextId = refunds.length + 1
     const today = new Date()
-    const todayStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`
+    // Use selected month instead of current month
+    const day = String(today.getDate()).padStart(2, '0')
+    const month = String(selectedMonth + 1).padStart(2, '0')
+    const year = today.getFullYear()
+    const dateStr = `${day}/${month}/${year}`
     const newRefund: Refund = {
       id: String(Date.now()),
       idReembolso: `REM-${String(nextId).padStart(3, '0')}`,
-      dataCompra: todayStr,
+      dataCompra: dateStr,
       nomeCliente: "",
       email: "",
       numEncomenda: "",
@@ -312,10 +315,10 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
               </div>
             </div>
           </CardHeader>
-        <CardContent className="p-0">
-          <ScrollArea className="h-[calc(100vh-280px)]">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1550px]">
+        <CardContent className="p-0 flex-1 overflow-hidden">
+          <div className="overflow-auto h-full">
+            <div className="min-w-max">
+              <table className="w-full">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-[#1a2744] text-white text-xs font-medium">
                     <th className="px-3 py-3 text-center w-10"></th>
@@ -473,7 +476,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
                 </tbody>
               </table>
             </div>
-          </ScrollArea>
+          </div>
         </CardContent>
         </Card>
         
