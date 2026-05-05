@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Plus, Save, Loader2 } from "lucide-react"
+import { Plus, Save, Loader2, Trash2 } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import { getRefunds, saveAllRefunds, type RefundData } from "@/app/actions/refunds"
 
 interface Refund {
@@ -84,6 +85,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   const [saveMessage, setSaveMessage] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Load from database on mount
   useEffect(() => {
@@ -118,9 +120,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
 
   // Save to database
   const saveToDatabase = () => {
-    console.log("[v0] Save button clicked, refunds to save:", refunds.length)
     startTransition(async () => {
-      console.log("[v0] Starting save transition")
       const refundsToSave: RefundData[] = refunds.map(r => ({
         client_slug: clientId,
         id_reembolso: r.idReembolso,
@@ -137,9 +137,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
         estado: r.estado
       }))
       
-      console.log("[v0] Calling saveAllRefunds with clientId:", clientId, "refundsToSave:", refundsToSave)
       const result = await saveAllRefunds(clientId, refundsToSave)
-      console.log("[v0] Save result:", result)
       
       if (result.success) {
         setSaveMessage("Salvo!")
@@ -202,6 +200,24 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
 
   const updateRefund = (id: string, field: keyof Refund, value: string) => {
     setRefunds(refunds.map(r => r.id === id ? { ...r, [field]: value } : r))
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
+  }
+
+  const deleteSelected = () => {
+    if (selectedIds.size === 0) return
+    setRefunds(refunds.filter(r => !selectedIds.has(r.id)))
+    setSelectedIds(new Set())
   }
 
   const getEstadoColor = (estado: string) => {
@@ -284,6 +300,15 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
                   )}
                   {saveMessage || "Salvar"}
                 </Button>
+                <Button
+                  onClick={deleteSelected}
+                  disabled={selectedIds.size === 0}
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-900 disabled:opacity-50 text-white h-7 px-3"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Deletar ({selectedIds.size})
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -293,6 +318,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
               <table className="w-full min-w-[1550px]">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-[#1a2744] text-white text-xs font-medium">
+                    <th className="px-3 py-3 text-center w-10"></th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">ID Reembolso</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Data Compra</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Nome da Cliente</th>
@@ -311,8 +337,15 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
                   {filteredRefunds.map((refund, index) => (
                     <tr 
                       key={refund.id} 
-                      className={index % 2 === 0 ? "bg-[#0A0A0F]" : "bg-[#101018]"}
+                      className={`${index % 2 === 0 ? "bg-[#0A0A0F]" : "bg-[#101018]"} ${selectedIds.has(refund.id) ? "bg-red-900/20" : ""}`}
                     >
+                      <td className="px-3 py-2 text-center">
+                        <Checkbox
+                          checked={selectedIds.has(refund.id)}
+                          onCheckedChange={() => toggleSelect(refund.id)}
+                          className="border-[rgba(255,255,255,0.3)] data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                        />
+                      </td>
                       <td className="px-3 py-2">
                         <Input
                           value={refund.idReembolso}
