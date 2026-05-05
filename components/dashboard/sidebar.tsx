@@ -65,8 +65,9 @@ const getClientNavItems = (slug: string, plan?: string) => {
     { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
   ]
   
-  // Add "Operação", "Reembolsos" and "E-mails" only for SCALE plan (Scale VÉRTEBRA+ GLOBAL)
-  if (plan?.toUpperCase() === "SCALE") {
+  // Add "Operação", "Reembolsos" and "E-mails" only for SCALE plan
+  const isScalePlan = plan && plan.toUpperCase() === "SCALE"
+  if (isScalePlan) {
     items.splice(3, 0, { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: TableIcon })
     items.splice(4, 0, { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw })
     items.splice(5, 0, { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail })
