@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useTransition } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Plus, Save, CheckCircle2, XCircle, Clock, AlertTriangle, Info } from "lucide-react"
+import { Plus, Save, CheckCircle2, XCircle, Clock, AlertTriangle, Info, Loader2 } from "lucide-react"
+import { getRefunds, saveAllRefunds, type RefundData } from "@/app/actions/refunds"
 
 interface Refund {
   id: string
@@ -100,27 +101,87 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [refunds, setRefunds] = useState<Refund[]>([])
   const [saveMessage, setSaveMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [isPending, startTransition] = useTransition()
 
-  const STORAGE_KEY = `refunds_${clientId}`
-
-  // Load from localStorage on mount
+  // Load from database on mount
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
+    const loadRefunds = async () => {
+      setIsLoading(true)
       try {
-        const parsed = JSON.parse(saved)
-        setRefunds(parsed)
-      } catch {
-        // Invalid JSON, ignore
+        const data = await getRefunds(clientId)
+        const mappedRefunds: Refund[] = data.map((r: RefundData & { id: string }) => ({
+          id: r.id,
+          idReembolso: r.id_reembolso || "",
+          dataCompra: r.data_compra || "",
+          nomeCliente: r.nome_cliente || "",
+          email: r.email || "",
+          numEncomenda: r.num_encomenda || "",
+          nomePeca: r.nome_peca || "",
+          tamanho: r.tamanho || "",
+          precoPago: r.preco_pago || "",
+          motivoDevolucao: r.motivo_devolucao || "",
+          tipoResolucao: r.tipo_resolucao || "",
+          valorReembolsado: r.valor_reembolsado || "",
+          estado: r.estado || "Pendente"
+        }))
+        setRefunds(mappedRefunds)
+      } catch (error) {
+        console.error("Error loading refunds:", error)
+      } finally {
+        setIsLoading(false)
       }
     }
-  }, [STORAGE_KEY])
+    loadRefunds()
+  }, [clientId])
 
-  // Save to localStorage
-  const saveToLocalStorage = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(refunds))
-    setSaveMessage("Salvo!")
-    setTimeout(() => setSaveMessage(""), 2000)
+  // Save to database
+  const saveToDatabase = () => {
+    startTransition(async () => {
+      const refundsToSave: RefundData[] = refunds.map(r => ({
+        client_slug: clientId,
+        id_reembolso: r.idReembolso,
+        data_compra: r.dataCompra,
+        nome_cliente: r.nomeCliente,
+        email: r.email,
+        num_encomenda: r.numEncomenda,
+        nome_peca: r.nomePeca,
+        tamanho: r.tamanho,
+        preco_pago: r.precoPago,
+        motivo_devolucao: r.motivoDevolucao,
+        tipo_resolucao: r.tipoResolucao,
+        valor_reembolsado: r.valorReembolsado,
+        estado: r.estado
+      }))
+      
+      const result = await saveAllRefunds(clientId, refundsToSave)
+      
+      if (result.success) {
+        setSaveMessage("Salvo!")
+        setTimeout(() => setSaveMessage(""), 2000)
+        // Reload to get the new IDs
+        const data = await getRefunds(clientId)
+        const mappedRefunds: Refund[] = data.map((r: RefundData & { id: string }) => ({
+          id: r.id,
+          idReembolso: r.id_reembolso || "",
+          dataCompra: r.data_compra || "",
+          nomeCliente: r.nome_cliente || "",
+          email: r.email || "",
+          numEncomenda: r.num_encomenda || "",
+          nomePeca: r.nome_peca || "",
+          tamanho: r.tamanho || "",
+          precoPago: r.preco_pago || "",
+          motivoDevolucao: r.motivo_devolucao || "",
+          tipoResolucao: r.tipo_resolucao || "",
+          valorReembolsado: r.valor_reembolsado || "",
+          estado: r.estado || "Pendente"
+        }))
+        setRefunds(mappedRefunds)
+      } else {
+        setSaveMessage("Erro!")
+        setTimeout(() => setSaveMessage(""), 2000)
+      }
+    })
   }
 
   const addNewRow = () => {
@@ -186,6 +247,14 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   const resolvidos = filteredRefunds.filter(r => r.estado === "Resolvido").length
   const negados = filteredRefunds.filter(r => r.estado === "Negado").length
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-180px)]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#A855F7]" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex gap-6 h-[calc(100vh-180px)]">
       {/* LEFT PANEL - Main refunds table */}
@@ -227,11 +296,16 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
                   <Plus className="h-4 w-4" />
                 </Button>
                 <Button
-                  onClick={saveToLocalStorage}
+                  onClick={saveToDatabase}
+                  disabled={isPending}
                   size="sm"
                   className="bg-gradient-to-r from-[#A855F7] to-[#7C3AED] hover:from-[#9333EA] hover:to-[#6D28D9] text-white h-7 px-3"
                 >
-                  <Save className="h-4 w-4 mr-1" />
+                  {isPending ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-1" />
+                  )}
                   {saveMessage || "Salvar"}
                 </Button>
               </div>
@@ -435,9 +509,9 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
               </thead>
               <tbody>
                 {instrucoesPreenchimento.map((item, index) => (
-                  <tr key={index} className="text-[rgba(245,245,247,0.72)] border-b border-[rgba(255,255,255,0.03)]">
+                  <tr key={index} className="border-b border-[rgba(255,255,255,0.04)]">
                     <td className="py-1.5 text-[#F5F5F7]">{item.campo}</td>
-                    <td className="py-1.5">{item.descricao}</td>
+                    <td className="py-1.5 text-[rgba(245,245,247,0.52)]">{item.descricao}</td>
                     <td className="py-1.5 text-[#A855F7]">{item.exemplo}</td>
                   </tr>
                 ))}
@@ -447,50 +521,41 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
         </Card>
 
         {/* Critérios de Elegibilidade */}
-        <Card className="bg-[#101018] border-[rgba(255,255,255,0.06)] flex-1">
+        <Card className="bg-[#101018] border-[rgba(255,255,255,0.06)]">
           <CardHeader className="py-3 px-4 bg-[#1a2744]">
             <CardTitle className="text-white text-xs font-semibold uppercase tracking-wider">
               Critérios de Elegibilidade
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3">
-            <ScrollArea className="h-[200px]">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="text-[rgba(245,245,247,0.52)] border-b border-[rgba(255,255,255,0.06)]">
-                    <th className="text-left py-1.5 font-medium">Situação</th>
-                    <th className="text-left py-1.5 font-medium">Decisão</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {criteriosElegibilidade.map((item, index) => (
-                    <tr key={index} className="border-b border-[rgba(255,255,255,0.03)]">
-                      <td className="py-1.5 text-[rgba(245,245,247,0.72)]">{item.situacao}</td>
-                      <td className={`py-1.5 font-medium flex items-center gap-1 ${getCriterioColor(item.status)}`}>
-                        <item.icon className="h-3 w-3" />
-                        {item.decisao}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollArea>
+            <div className="space-y-1.5 text-xs">
+              {criteriosElegibilidade.map((item, index) => {
+                const Icon = item.icon
+                return (
+                  <div key={index} className="flex items-center gap-2 py-1">
+                    <Icon className={`h-3.5 w-3.5 shrink-0 ${getCriterioColor(item.status)}`} />
+                    <span className="text-[rgba(245,245,247,0.72)]">{item.situacao}</span>
+                    <span className="text-[rgba(245,245,247,0.32)] mx-1">→</span>
+                    <span className={getCriterioColor(item.status)}>{item.decisao}</span>
+                  </div>
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
 
-        {/* O que é um Bundle? */}
+        {/* Bundle Info */}
         <Card className="bg-[#101018] border-[rgba(255,255,255,0.06)]">
           <CardHeader className="py-3 px-4 bg-[#1a2744]">
             <CardTitle className="text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-              <Info className="h-3 w-3" />
-              O que é um Bundle?
+              <Info className="h-3.5 w-3.5" />
+              Bundles e Kits
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3">
-            <p className="text-xs text-[rgba(245,245,247,0.72)] leading-relaxed">
-              <strong className="text-[#F5F5F7]">Bundle</strong> = conjunto de peças vendidas juntas com desconto. 
-              No reembolso: só se reembolsa a peça com defeito, não o conjunto. 
-              <span className="text-amber-400"> Se devolver 1 peça: perde o desconto proporcional.</span>
+            <p className="text-xs text-[rgba(245,245,247,0.52)]">
+              Para bundles/kits, cada peça deve ter uma linha separada. 
+              O valor do reembolso deve ser proporcional ao preço individual do item no bundle.
             </p>
           </CardContent>
         </Card>
