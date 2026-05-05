@@ -1,47 +1,50 @@
-import { Metadata } from "next"
-import { notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/auth"
+import { sql } from "@/lib/db"
 import { OperationalCosts } from "@/components/client/operational-costs"
 
-export const metadata: Metadata = {
-  title: "Custos Operacionais | PG Dash",
-  description: "Registre mensalmente os custos operacionais para melhor performance e controle da sua operação",
+export const dynamic = 'force-dynamic'
+
+async function getClientBySlug(slug: string) {
+  try {
+    const result = await sql`
+      SELECT id, name, slug, plan FROM clients WHERE slug = ${slug}
+    `
+    return result[0] || null
+  } catch {
+    return null
+  }
 }
 
-interface PageProps {
-  params: Promise<{ slug: string }>
-}
-
-async function getClient(slug: string) {
-  const supabase = await createClient()
-  
-  const { data: client } = await supabase
-    .from("pg_clients")
-    .select("*")
-    .eq("slug", slug)
-    .single()
-  
-  return client
-}
-
-export default async function CustosPage({ params }: PageProps) {
+export default async function CustosPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const client = await getClient(slug)
+  const session = await getSession()
+  
+  if (!session) {
+    redirect("/login")
+  }
 
+  const client = await getClientBySlug(slug)
+  
   if (!client) {
-    notFound()
+    redirect("/login")
+  }
+
+  // Check if client has SCALE plan
+  if (client.plan?.toUpperCase() !== "SCALE") {
+    redirect(`/dashboards/${slug}`)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-6 px-4 md:px-6 lg:px-8 pb-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[#F5F5F7]">Custos Operacionais</h1>
+        <h1 className="text-2xl font-bold text-[#F5F5F7] mb-2">Custos Operacionais</h1>
         <p className="text-[rgba(245,245,247,0.52)]">
           Registre mensalmente os custos operacionais para melhor performance e controle da sua operação
         </p>
       </div>
 
-      <OperationalCosts clientId={slug} />
+      <OperationalCosts clientId={client.id} />
     </div>
   )
 }
