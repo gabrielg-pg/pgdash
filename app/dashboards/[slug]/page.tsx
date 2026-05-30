@@ -65,6 +65,7 @@ export default async function DashboardSlugPage({
       <div className="min-h-screen bg-[#07070A]">
         <div className="p-4 md:p-6 lg:p-8">
           <ScaleGlobalDashboard 
+            clientId={client.id}
             clientSlug={client.slug}
             clientName={client.name}
             userName={session.name.split(" ")[0]}

@@ -12,7 +12,8 @@ const MONTHS = [
 ]
 
 interface ScaleGlobalDashboardProps {
-  clientSlug: string
+  clientId: string  // UUID for Neon
+  clientSlug: string  // Slug for Supabase
   clientName: string
   userName: string
   clientPlan?: string
@@ -35,6 +36,7 @@ interface MetricsData {
 }
 
 export function ScaleGlobalDashboard({ 
+  clientId,
   clientSlug, 
   clientName, 
   userName,
@@ -65,7 +67,7 @@ export function ScaleGlobalDashboard({
       setIsLoading(true)
       try {
         const response = await fetch(
-          `/api/client/metrics?clientSlug=${clientSlug}&month=${selectedMonth + 1}&year=${currentYear}`
+          `/api/client/metrics?clientId=${clientId}&clientSlug=${clientSlug}&month=${selectedMonth + 1}&year=${currentYear}`
         )
         const data = await response.json()
         setMetrics(data)
@@ -77,7 +79,7 @@ export function ScaleGlobalDashboard({
     }
 
     fetchData()
-  }, [selectedMonth, clientSlug, currentYear])
+  }, [selectedMonth, clientId, clientSlug, currentYear])
 
   // Animate result counter
   useEffect(() => {
