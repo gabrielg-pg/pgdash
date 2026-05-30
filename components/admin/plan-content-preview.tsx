@@ -36,30 +36,24 @@ export function PlanContentPreview({
       </div>
 
       <Tabs defaultValue="start" className="w-full">
-        <TabsList className="w-full bg-[#0D0D12] border border-zinc-800/60 p-1 rounded-xl grid grid-cols-4">
+        <TabsList className="w-full bg-[#0D0D12] border border-zinc-800/60 p-1 rounded-xl">
           <TabsTrigger 
             value="start" 
-            className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 rounded-lg transition-all text-xs"
+            className="flex-1 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 rounded-lg transition-all"
           >
-            Start
+            Start PRO GROWTH
           </TabsTrigger>
           <TabsTrigger 
             value="pro" 
-            className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 rounded-lg transition-all text-xs"
+            className="flex-1 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 rounded-lg transition-all"
           >
-            Pro Vértebra
+            Pro VÉRTEBRA
           </TabsTrigger>
           <TabsTrigger 
-            value="scale_vertebra" 
-            className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400 rounded-lg transition-all text-xs"
+            value="scale" 
+            className="flex-1 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400 rounded-lg transition-all"
           >
-            Scale Vértebra
-          </TabsTrigger>
-          <TabsTrigger 
-            value="scale_global" 
-            className="data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400 rounded-lg transition-all text-xs"
-          >
-            Scale Global
+            Scale VÉRTEBRA+ GLOBAL
           </TabsTrigger>
         </TabsList>
 
@@ -309,8 +303,8 @@ export function PlanContentPreview({
           </div>
         </TabsContent>
 
-        {/* SCALE_VERTEBRA Plan Content - mesmo acesso que Pro */}
-        <TabsContent value="scale_vertebra" className="mt-6 space-y-5">
+        {/* SCALE Plan Content */}
+        <TabsContent value="scale" className="mt-6 space-y-5">
           {/* Header */}
           <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c0c10] to-[#0d0b14] border border-zinc-800/60 p-6 md:p-8">
             <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -333,93 +327,7 @@ export function PlanContentPreview({
               
               <div className="flex flex-col items-start md:items-end gap-2">
                 <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 px-3 py-1 text-sm font-medium">
-                  SCALE VÉRTEBRA
-                </Badge>
-                <p className="text-xs text-zinc-500">
-                  Nivel atual - Operador com espinha dorsal avancada
-                </p>
-              </div>
-            </div>
-          </header>
-
-          {/* Two cards */}
-          <div className="grid lg:grid-cols-2 gap-4">
-            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5">
-              <p className="text-white text-sm leading-relaxed">
-                Voce esta no nivel <span className="text-amber-400 font-medium">SCALE VÉRTEBRA</span>.
-              </p>
-              <p className="text-zinc-400 text-sm mt-3 leading-relaxed">
-                Neste estagio, a operacao tem a mesma base estrutural do Pro, com acompanhamento especializado para consolidacao.
-              </p>
-              <p className="text-zinc-400 text-sm mt-3 leading-relaxed">
-                <span className="text-white font-medium">A base esta solida. O foco e manter e otimizar.</span>
-              </p>
-            </div>
-
-            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5">
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                O objetivo deste nivel e consolidar a estrutura existente antes de avancar para escala global.
-              </p>
-              <div className="mt-4 space-y-2">
-                <p className="text-zinc-300 text-sm flex items-start gap-2">
-                  <span className="text-amber-500 mt-0.5">-</span>
-                  Mesmos acessos do nivel Pro
-                </p>
-                <p className="text-zinc-300 text-sm flex items-start gap-2">
-                  <span className="text-amber-500 mt-0.5">-</span>
-                  Acompanhamento especializado
-                </p>
-                <p className="text-zinc-300 text-sm flex items-start gap-2">
-                  <span className="text-amber-500 mt-0.5">-</span>
-                  Preparacao para expansao
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5">
-            <h3 className="text-lg font-semibold text-white mb-2">Avaliacao de Progressao de Nivel</h3>
-            <p className="text-zinc-400 text-sm">
-              O avanco para o Scale Global requer que a operacao esteja pronta para expansao internacional.
-            </p>
-            <div className="mt-4 pt-4 border-t border-zinc-800/60">
-              <a href={proButtonLink} target="_blank" rel="noopener noreferrer">
-                <Button className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg gap-2 text-sm">
-                  <MessageCircle className="w-4 h-4" />
-                  {proButtonLabel}
-                  <ArrowUpRight className="w-4 h-4" />
-                </Button>
-              </a>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* SCALE_GLOBAL Plan Content - renomeado para SCALE_GLOBAL */}
-        <TabsContent value="scale_global" className="mt-6 space-y-5">
-          {/* Header */}
-          <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0c0c10] to-[#0d0b14] border border-zinc-800/60 p-6 md:p-8">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-            
-            <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                    <Map className="w-5 h-5 text-amber-400" />
-                  </div>
-                  <h1 className="text-xl md:text-2xl font-semibold text-white tracking-tight">
-                    Mapa da Operacao
-                  </h1>
-                </div>
-                <p className="text-zinc-400 text-sm max-w-lg">
-                  Acompanhe a jornada da sua operacao e entenda cada etapa do processo de construcao do seu negocio.
-                </p>
-              </div>
-              
-              <div className="flex flex-col items-start md:items-end gap-2">
-                <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 px-3 py-1 text-sm font-medium">
-                  SCALE GLOBAL
+                  SCALE VERTEBRA+ GLOBAL
                 </Badge>
                 <p className="text-xs text-zinc-500">
                   Nivel atual - Operacao global escalavel
@@ -432,7 +340,7 @@ export function PlanContentPreview({
           <div className="grid lg:grid-cols-2 gap-4">
             <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5">
               <p className="text-white text-sm leading-relaxed">
-                Voce esta no nivel <span className="text-orange-400 font-medium">SCALE GLOBAL</span>.
+                Voce esta no nivel <span className="text-amber-400 font-medium">SCALE VERTEBRA+ GLOBAL</span>.
               </p>
               <p className="text-zinc-400 text-sm mt-3 leading-relaxed">
                 Neste estagio, a operacao esta pronta para crescer de forma previsivel e sustentavel, com estrutura que suporta volume sem perder controle.
@@ -448,20 +356,16 @@ export function PlanContentPreview({
               </p>
               <div className="mt-4 space-y-2">
                 <p className="text-zinc-300 text-sm flex items-start gap-2">
-                  <span className="text-orange-500 mt-0.5">-</span>
+                  <span className="text-amber-500 mt-0.5">-</span>
                   Escala com previsibilidade
                 </p>
                 <p className="text-zinc-300 text-sm flex items-start gap-2">
-                  <span className="text-orange-500 mt-0.5">-</span>
+                  <span className="text-amber-500 mt-0.5">-</span>
                   Expansao internacional estruturada
                 </p>
                 <p className="text-zinc-300 text-sm flex items-start gap-2">
-                  <span className="text-orange-500 mt-0.5">-</span>
+                  <span className="text-amber-500 mt-0.5">-</span>
                   Operacao autonoma e replicavel
-                </p>
-                <p className="text-zinc-300 text-sm flex items-start gap-2">
-                  <span className="text-orange-500 mt-0.5">-</span>
-                  Menus exclusivos: Operacao, Reembolsos, E-mails, Custos
                 </p>
               </div>
             </div>
@@ -469,9 +373,9 @@ export function PlanContentPreview({
 
           {/* Three cards */}
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5 hover:border-orange-500/30 transition-colors">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center mb-3">
-                <Globe className="w-4 h-4 text-orange-400" />
+            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5 hover:border-amber-500/30 transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3">
+                <Globe className="w-4 h-4 text-amber-400" />
               </div>
               <h3 className="text-white font-medium mb-1">Expansao Global</h3>
               <p className="text-zinc-500 text-xs mb-3">Operacao sem fronteiras</p>
@@ -480,9 +384,9 @@ export function PlanContentPreview({
               </p>
             </div>
 
-            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5 hover:border-orange-500/30 transition-colors">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center mb-3">
-                <Rocket className="w-4 h-4 text-orange-400" />
+            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5 hover:border-amber-500/30 transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3">
+                <Rocket className="w-4 h-4 text-amber-400" />
               </div>
               <h3 className="text-white font-medium mb-1">Escala Controlada</h3>
               <p className="text-zinc-500 text-xs mb-3">Crescimento com metodo</p>
@@ -491,9 +395,9 @@ export function PlanContentPreview({
               </p>
             </div>
 
-            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5 hover:border-orange-500/30 transition-colors">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center mb-3">
-                <TrendingUp className="w-4 h-4 text-orange-400" />
+            <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5 hover:border-amber-500/30 transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3">
+                <TrendingUp className="w-4 h-4 text-amber-400" />
               </div>
               <h3 className="text-white font-medium mb-1">Performance Avancada</h3>
               <p className="text-zinc-500 text-xs mb-3">Otimizacao continua</p>
@@ -507,11 +411,11 @@ export function PlanContentPreview({
           <div className="bg-[#0c0c10] border border-zinc-800/60 rounded-xl p-5">
             <h3 className="text-lg font-semibold text-white mb-2">Suporte Estrategico</h3>
             <p className="text-zinc-400 text-sm">
-              No nivel SCALE GLOBAL, voce tem acesso a suporte estrategico especializado e menus exclusivos (Operacao, Reembolsos, E-mails, Custos) para garantir que sua operacao continue crescendo de forma sustentavel.
+              No nivel SCALE, voce tem acesso a suporte estrategico especializado para garantir que sua operacao continue crescendo de forma sustentavel.
             </p>
             <div className="mt-4 pt-4 border-t border-zinc-800/60">
               <a href={scaleButtonLink} target="_blank" rel="noopener noreferrer">
-                <Button className="bg-orange-600 hover:bg-orange-700 text-white rounded-lg gap-2 text-sm">
+                <Button className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg gap-2 text-sm">
                   <MessageCircle className="w-4 h-4" />
                   {scaleButtonLabel}
                   <ArrowUpRight className="w-4 h-4" />

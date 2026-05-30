@@ -54,16 +54,6 @@ const planColors: Record<string, string> = {
   START: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
   PRO: "bg-purple-500/20 text-purple-400 border-purple-500/30",
   SCALE: "bg-gradient-to-r from-purple-500/20 to-fuchsia-500/20 text-purple-400 border-purple-500/30",
-  SCALE_VERTEBRA: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  SCALE_GLOBAL: "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/30",
-}
-
-const planLabels: Record<string, string> = {
-  START: "Start",
-  PRO: "Pro",
-  SCALE: "Scale",
-  SCALE_VERTEBRA: "Scale Vértebra",
-  SCALE_GLOBAL: "Scale Global",
 }
 
 const statusColors: Record<string, string> = {
@@ -173,7 +163,7 @@ export function ClientsTable({ clients: initialClients, userRole = "ADMIN" }: Cl
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={planColors[client.plan] || planColors.START}>
-                      {planLabels[client.plan] || client.plan}
+                      {client.plan}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -308,7 +298,7 @@ export function ClientsTable({ clients: initialClients, userRole = "ADMIN" }: Cl
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 <Badge variant="outline" className={planColors[client.plan] || planColors.START}>
-                  {planLabels[client.plan] || client.plan}
+                  {client.plan}
                 </Badge>
                 <Badge variant="outline" className={statusColors[client.status] || statusColors.ACTIVE}>
                   {client.status}
