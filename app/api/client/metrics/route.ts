@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
   // Initialize arrays with zeros
   const salesByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
   const adspendByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
+  const cogsByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
   const refundsByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
   const costsByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
 
@@ -28,9 +29,9 @@ export async function GET(request: NextRequest) {
     : `${year}-${String(month + 1).padStart(2, '0')}-01`
 
   try {
-    // Fetch sales and adspend data from NEON (daily_operations table)
+    // Fetch sales, adspend and cogs data from NEON (daily_operations table)
     const sales = await sql`
-      SELECT operation_date, valor_vendas, adspend
+      SELECT operation_date, valor_vendas, adspend, cogs
       FROM daily_operations
       WHERE client_id = ${clientId}::uuid
         AND operation_date >= ${startDate}::date
@@ -38,13 +39,16 @@ export async function GET(request: NextRequest) {
     `
 
     if (sales && sales.length > 0) {
-      sales.forEach((row: { operation_date: string | Date; valor_vendas: string | number; adspend: string | number }) => {
+      sales.forEach((row: { operation_date: string | Date; valor_vendas: string | number; adspend: string | number; cogs: string | number }) => {
         const day = new Date(row.operation_date).getDate()
         if (salesByDay[day - 1]) {
           salesByDay[day - 1].value += parseFloat(String(row.valor_vendas)) || 0
         }
         if (adspendByDay[day - 1]) {
           adspendByDay[day - 1].value += parseFloat(String(row.adspend)) || 0
+        }
+        if (cogsByDay[day - 1]) {
+          cogsByDay[day - 1].value += parseFloat(String(row.cogs)) || 0
         }
       })
     }
@@ -95,16 +99,19 @@ export async function GET(request: NextRequest) {
     // Calculate totals
     const totalSales = salesByDay.reduce((sum, d) => sum + d.value, 0)
     const totalAdspend = adspendByDay.reduce((sum, d) => sum + d.value, 0)
+    const totalCogs = cogsByDay.reduce((sum, d) => sum + d.value, 0)
     const totalRefunds = refundsByDay.reduce((sum, d) => sum + d.value, 0)
     const totalCosts = costsByDay.reduce((sum, d) => sum + d.value, 0)
 
     return NextResponse.json({
       salesData: salesByDay,
       adspendData: adspendByDay,
+      cogsData: cogsByDay,
       refundsData: refundsByDay,
       costsData: costsByDay,
       totalSales,
       totalAdspend,
+      totalCogs,
       totalRefunds,
       totalCosts,
     })
@@ -114,10 +121,12 @@ export async function GET(request: NextRequest) {
       error: "Failed to fetch metrics",
       salesData: salesByDay,
       adspendData: adspendByDay,
+      cogsData: cogsByDay,
       refundsData: refundsByDay,
       costsData: costsByDay,
       totalSales: 0,
       totalAdspend: 0,
+      totalCogs: 0,
       totalRefunds: 0,
       totalCosts: 0,
     }, { status: 500 })

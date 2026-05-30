@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
-import { TrendingUp, TrendingDown, Euro, RotateCcw, DollarSign, Calculator, Store, Sparkles, Calendar, Activity, Megaphone } from "lucide-react"
+import { TrendingUp, TrendingDown, Euro, RotateCcw, DollarSign, Calculator, Store, Sparkles, Calendar, Activity, Megaphone, Package } from "lucide-react"
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -29,10 +29,12 @@ interface DailyData {
 interface MetricsData {
   salesData: DailyData[]
   adspendData: DailyData[]
+  cogsData: DailyData[]
   refundsData: DailyData[]
   costsData: DailyData[]
   totalSales: number
   totalAdspend: number
+  totalCogs: number
   totalRefunds: number
   totalCosts: number
 }
@@ -56,10 +58,12 @@ export function ScaleGlobalDashboard({
   const [metrics, setMetrics] = useState<MetricsData>({
     salesData: [],
     adspendData: [],
+    cogsData: [],
     refundsData: [],
     costsData: [],
     totalSales: 0,
     totalAdspend: 0,
+    totalCogs: 0,
     totalRefunds: 0,
     totalCosts: 0,
   })
@@ -87,7 +91,7 @@ export function ScaleGlobalDashboard({
 
   // Animate result counter
   useEffect(() => {
-    const result = metrics.totalSales - metrics.totalAdspend - metrics.totalRefunds - metrics.totalCosts
+    const result = metrics.totalSales - metrics.totalAdspend - metrics.totalCogs - metrics.totalRefunds - metrics.totalCosts
     const duration = 1000
     const steps = 30
     const increment = result / steps
@@ -106,9 +110,9 @@ export function ScaleGlobalDashboard({
     }, duration / steps)
 
     return () => clearInterval(timer)
-  }, [metrics.totalSales, metrics.totalAdspend, metrics.totalRefunds, metrics.totalCosts])
+  }, [metrics.totalSales, metrics.totalAdspend, metrics.totalCogs, metrics.totalRefunds, metrics.totalCosts])
 
-  const result = metrics.totalSales - metrics.totalAdspend - metrics.totalRefunds - metrics.totalCosts
+  const result = metrics.totalSales - metrics.totalAdspend - metrics.totalCogs - metrics.totalRefunds - metrics.totalCosts
   const isProfit = result >= 0
 
   const formatCurrency = (value: number) => {
@@ -244,8 +248,8 @@ export function ScaleGlobalDashboard({
             ))}
           </div>
 
-          {/* Charts Grid - 2x2 layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Charts Grid - 3x2 layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Sales Chart */}
             <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018] rounded-2xl">
               <CardHeader className="pb-2 p-4">
@@ -335,6 +339,56 @@ export function ScaleGlobalDashboard({
                         <Bar 
                           dataKey="value" 
                           fill="#3B82F6" 
+                          radius={[2, 2, 0, 0]}
+                          animationDuration={800}
+                          animationBegin={0}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* COGS Chart */}
+            <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018] rounded-2xl">
+              <CardHeader className="pb-2 p-4">
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="text-[#F5F5F7] text-sm flex items-center gap-2">
+                    <Package className="w-4 h-4 text-[#8B5CF6]" />
+                    COGS
+                  </CardTitle>
+                  <span className="text-xl font-bold text-[#8B5CF6]">
+                    {formatCurrency(metrics.totalCogs)}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <div className="h-32">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart key={animationKey} data={metrics.cogsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                        <XAxis 
+                          dataKey="day" 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          interval="preserveStartEnd"
+                        />
+                        <YAxis 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                          width={30}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar 
+                          dataKey="value" 
+                          fill="#8B5CF6" 
                           radius={[2, 2, 0, 0]}
                           animationDuration={800}
                           animationBegin={0}
@@ -476,10 +530,10 @@ export function ScaleGlobalDashboard({
                     {formatCurrency(Math.abs(displayedResult))}
                   </p>
                   <p className="text-[rgba(245,245,247,0.42)] text-sm mt-6">
-                    Vendas - AdSpend - Reembolsos - Custos
+                    Vendas - AdSpend - COGS - Reembolsos - Custos
                   </p>
                   <p className="text-[rgba(245,245,247,0.52)] text-sm mt-2 text-center">
-                    {formatCurrency(metrics.totalSales)} - {formatCurrency(metrics.totalAdspend)} - {formatCurrency(metrics.totalRefunds)} - {formatCurrency(metrics.totalCosts)}
+                    {formatCurrency(metrics.totalSales)} - {formatCurrency(metrics.totalAdspend)} - {formatCurrency(metrics.totalCogs)} - {formatCurrency(metrics.totalRefunds)} - {formatCurrency(metrics.totalCosts)}
                   </p>
                 </div>
               )}
