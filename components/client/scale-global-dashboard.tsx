@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { createClient } from "@/lib/supabase/client"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
-import { TrendingUp, TrendingDown, Euro, RotateCcw, DollarSign, Calculator } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { TrendingUp, TrendingDown, Euro, RotateCcw, DollarSign, Calculator, Store, Sparkles, Calendar, Activity } from "lucide-react"
 
 const MONTHS = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -15,6 +15,9 @@ interface ScaleGlobalDashboardProps {
   clientSlug: string
   clientName: string
   userName: string
+  clientPlan?: string
+  clientStatus?: string
+  clientStartDate?: string
 }
 
 interface DailyData {
@@ -22,7 +25,23 @@ interface DailyData {
   value: number
 }
 
-export function ScaleGlobalDashboard({ clientSlug, clientName, userName }: ScaleGlobalDashboardProps) {
+interface MetricsData {
+  salesData: DailyData[]
+  refundsData: DailyData[]
+  costsData: DailyData[]
+  totalSales: number
+  totalRefunds: number
+  totalCosts: number
+}
+
+export function ScaleGlobalDashboard({ 
+  clientSlug, 
+  clientName, 
+  userName,
+  clientPlan = "SCALE_GLOBAL",
+  clientStatus = "ACTIVE",
+  clientStartDate
+}: ScaleGlobalDashboardProps) {
   const currentMonth = new Date().getMonth()
   const currentYear = new Date().getFullYear()
   
@@ -30,105 +49,30 @@ export function ScaleGlobalDashboard({ clientSlug, clientName, userName }: Scale
   const [isLoading, setIsLoading] = useState(true)
   const [animationKey, setAnimationKey] = useState(0)
   
-  const [salesData, setSalesData] = useState<DailyData[]>([])
-  const [refundsData, setRefundsData] = useState<DailyData[]>([])
-  const [costsData, setCostsData] = useState<DailyData[]>([])
+  const [metrics, setMetrics] = useState<MetricsData>({
+    salesData: [],
+    refundsData: [],
+    costsData: [],
+    totalSales: 0,
+    totalRefunds: 0,
+    totalCosts: 0,
+  })
   
-  const [totalSales, setTotalSales] = useState(0)
-  const [totalRefunds, setTotalRefunds] = useState(0)
-  const [totalCosts, setTotalCosts] = useState(0)
   const [displayedResult, setDisplayedResult] = useState(0)
 
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true)
-      const supabase = createClient()
-      const month = selectedMonth + 1
-      const year = currentYear
-
-      // Get days in month
-      const daysInMonth = new Date(year, month, 0).getDate()
-      
-      // Initialize arrays with zeros
-      const salesByDay: DailyData[] = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
-      const refundsByDay: DailyData[] = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
-      const costsByDay: DailyData[] = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
-
-      // Fetch sales data
-      const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-      const endDate = month === 12 
-        ? `${year + 1}-01-01` 
-        : `${year}-${String(month + 1).padStart(2, '0')}-01`
-      
-      const { data: sales } = await supabase
-        .from('daily_operations')
-        .select('operation_date, valor_vendas')
-        .eq('client_id', clientSlug)
-        .gte('operation_date', startDate)
-        .lt('operation_date', endDate)
-
-      if (sales) {
-        sales.forEach(row => {
-          const day = new Date(row.operation_date).getDate()
-          if (salesByDay[day - 1]) {
-            salesByDay[day - 1].value += parseFloat(row.valor_vendas) || 0
-          }
-        })
+      try {
+        const response = await fetch(
+          `/api/client/metrics?clientSlug=${clientSlug}&month=${selectedMonth + 1}&year=${currentYear}`
+        )
+        const data = await response.json()
+        setMetrics(data)
+        setAnimationKey(prev => prev + 1)
+      } catch (error) {
+        console.error("Error fetching metrics:", error)
       }
-
-      // Fetch refunds data
-      const { data: refunds } = await supabase
-        .from('refunds')
-        .select('data_compra, valor_reembolsado')
-        .eq('client_slug', clientSlug)
-
-      if (refunds) {
-        refunds.forEach(row => {
-          // Parse date format DD/MM/YYYY
-          const parts = row.data_compra?.split('/')
-          if (parts && parts.length === 3) {
-            const refundMonth = parseInt(parts[1])
-            const refundYear = parseInt(parts[2])
-            const refundDay = parseInt(parts[0])
-            
-            if (refundMonth === month && refundYear === year && refundsByDay[refundDay - 1]) {
-              const value = row.valor_reembolsado?.replace('€', '').replace(',', '.').trim()
-              refundsByDay[refundDay - 1].value += parseFloat(value) || 0
-            }
-          }
-        })
-      }
-
-      // Fetch costs data
-      const { data: costs } = await supabase
-        .from('operational_costs')
-        .select('value, created_at')
-        .eq('client_slug', clientSlug)
-        .eq('month', month)
-        .eq('year', year)
-
-      if (costs) {
-        // Distribute costs evenly across the month or use created_at
-        const totalCostsValue = costs.reduce((sum, row) => sum + (parseFloat(row.value) || 0), 0)
-        // For simplicity, show total costs on day 1
-        if (costsByDay[0]) {
-          costsByDay[0].value = totalCostsValue
-        }
-      }
-
-      // Calculate totals
-      const salesTotal = salesByDay.reduce((sum, d) => sum + d.value, 0)
-      const refundsTotal = refundsByDay.reduce((sum, d) => sum + d.value, 0)
-      const costsTotal = costsByDay.reduce((sum, d) => sum + d.value, 0)
-
-      setSalesData(salesByDay)
-      setRefundsData(refundsByDay)
-      setCostsData(costsByDay)
-      setTotalSales(salesTotal)
-      setTotalRefunds(refundsTotal)
-      setTotalCosts(costsTotal)
-      
-      setAnimationKey(prev => prev + 1)
       setIsLoading(false)
     }
 
@@ -137,7 +81,7 @@ export function ScaleGlobalDashboard({ clientSlug, clientName, userName }: Scale
 
   // Animate result counter
   useEffect(() => {
-    const result = totalSales - totalRefunds - totalCosts
+    const result = metrics.totalSales - metrics.totalRefunds - metrics.totalCosts
     const duration = 1000
     const steps = 30
     const increment = result / steps
@@ -156,13 +100,39 @@ export function ScaleGlobalDashboard({ clientSlug, clientName, userName }: Scale
     }, duration / steps)
 
     return () => clearInterval(timer)
-  }, [totalSales, totalRefunds, totalCosts])
+  }, [metrics.totalSales, metrics.totalRefunds, metrics.totalCosts])
 
-  const result = totalSales - totalRefunds - totalCosts
+  const result = metrics.totalSales - metrics.totalRefunds - metrics.totalCosts
   const isProfit = result >= 0
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
+  }
+
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return "—"
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  const getPlanLabel = (plan: string) => {
+    const labels: Record<string, string> = {
+      START: "Start",
+      PRO: "Pro",
+      SCALE: "Scale",
+      SCALE_VERTEBRA: "Scale Vértebra",
+      SCALE_GLOBAL: "Scale Global",
+    }
+    return labels[plan] || plan
+  }
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      ACTIVE: "Activo",
+      INACTIVE: "Inactivo",
+      PAUSED: "Pausado",
+    }
+    return labels[status] || status
   }
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -184,240 +154,282 @@ export function ScaleGlobalDashboard({ clientSlug, clientName, userName }: Scale
     </div>
   )
 
+  const infoCards = [
+    { label: "Loja", value: clientName, icon: Store },
+    { label: "Plano", value: getPlanLabel(clientPlan), icon: Sparkles, badge: true },
+    { label: "Status", value: getStatusLabel(clientStatus), icon: Activity, status: clientStatus },
+    { label: "Início", value: formatDate(clientStartDate), icon: Calendar },
+  ]
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#F5F5F7]">
-            Bem-vindo, {userName}!
-          </h1>
-          <p className="text-[rgba(245,245,247,0.52)] mt-1">{clientName}</p>
+    <div className="min-h-screen bg-[#07070A]">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        {/* Left Column - 40% */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Welcome Header */}
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-[#F5F5F7]">
+              Bem-vindo, {userName}!
+            </h1>
+            <p className="text-[rgba(245,245,247,0.52)] text-lg mt-2">{clientName}</p>
+          </div>
+
+          {/* Welcome Video */}
+          <div className="w-full aspect-video rounded-2xl overflow-hidden border border-[rgba(255,255,255,0.06)]">
+            <iframe
+              title="vimeo-player"
+              src="https://player.vimeo.com/video/1180982090?h=751e8cf86c"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+
+          {/* Info Cards Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {infoCards.map((card) => (
+              <Card key={card.label} className="border-[rgba(255,255,255,0.06)] bg-[#101018] rounded-2xl">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <card.icon className="w-4 h-4 text-[#A855F7]" />
+                    <p className="text-sm text-[rgba(245,245,247,0.52)]">{card.label}</p>
+                  </div>
+                  {card.badge ? (
+                    <Badge className="bg-gradient-to-r from-[#A855F7] to-[#7C3AED] text-white rounded-full px-3">
+                      {card.value}
+                    </Badge>
+                  ) : card.status ? (
+                    <Badge className={`
+                      ${card.status === "ACTIVE" ? "bg-[#22C55E]" : 
+                        card.status === "PAUSED" ? "bg-[#F59E0B]" : "bg-[#EF4444]"} 
+                      text-white rounded-full px-3
+                    `}>
+                      {card.value}
+                    </Badge>
+                  ) : (
+                    <p className="text-base font-semibold text-[#F5F5F7]">{card.value}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Welcome Video */}
-      <div className="flex justify-start">
-        <div className="w-full max-w-[600px] aspect-video rounded-xl overflow-hidden border border-[rgba(255,255,255,0.06)]">
-          <iframe
-            title="vimeo-player"
-            src="https://player.vimeo.com/video/1180982090?h=751e8cf86c"
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
-            allowFullScreen
-            className="w-full h-full"
-          />
-        </div>
-      </div>
+        {/* Right Column - 60% */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Month Selector Pills */}
+          <div className="flex flex-wrap gap-2">
+            {MONTHS.map((month, index) => (
+              <button
+                key={month}
+                onClick={() => setSelectedMonth(index)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  selectedMonth === index
+                    ? "bg-[#A855F7] text-white shadow-lg shadow-[rgba(168,85,247,0.3)]"
+                    : "bg-[#101018] text-[rgba(245,245,247,0.72)] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(168,85,247,0.3)]"
+                }`}
+              >
+                {month}
+              </button>
+            ))}
+          </div>
 
-      {/* Month Selector */}
-      <div className="flex flex-wrap gap-2">
-        {MONTHS.map((month, index) => (
-          <button
-            key={month}
-            onClick={() => setSelectedMonth(index)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-              selectedMonth === index
-                ? "bg-[#A855F7] text-white shadow-lg shadow-[rgba(168,85,247,0.3)]"
-                : "bg-[#101018] text-[rgba(245,245,247,0.72)] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(168,85,247,0.3)]"
-            }`}
-          >
-            {month}
-          </button>
-        ))}
-      </div>
+          {/* Charts Grid - 3 charts */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Sales Chart */}
+            <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018] rounded-2xl">
+              <CardHeader className="pb-2 p-4">
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="text-[#F5F5F7] text-sm flex items-center gap-2">
+                    <Euro className="w-4 h-4 text-[#A855F7]" />
+                    Vendas Totais
+                  </CardTitle>
+                  <span className="text-xl font-bold text-[#22C55E]">
+                    {formatCurrency(metrics.totalSales)}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <div className="h-36">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart key={animationKey} data={metrics.salesData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                        <XAxis 
+                          dataKey="day" 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          interval="preserveStartEnd"
+                        />
+                        <YAxis 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                          width={30}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar 
+                          dataKey="value" 
+                          fill="#A855F7" 
+                          radius={[2, 2, 0, 0]}
+                          animationDuration={800}
+                          animationBegin={0}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Chart */}
-        <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
+            {/* Refunds Chart */}
+            <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018] rounded-2xl">
+              <CardHeader className="pb-2 p-4">
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="text-[#F5F5F7] text-sm flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-[#F97316]" />
+                    Reembolsos
+                  </CardTitle>
+                  <span className="text-xl font-bold text-[#F97316]">
+                    {formatCurrency(metrics.totalRefunds)}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <div className="h-36">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart key={animationKey} data={metrics.refundsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                        <XAxis 
+                          dataKey="day" 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          interval="preserveStartEnd"
+                        />
+                        <YAxis 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          width={30}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar 
+                          dataKey="value" 
+                          fill="#F97316" 
+                          radius={[2, 2, 0, 0]}
+                          animationDuration={800}
+                          animationBegin={0}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Costs Chart */}
+            <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018] rounded-2xl">
+              <CardHeader className="pb-2 p-4">
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="text-[#F5F5F7] text-sm flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-[#EF4444]" />
+                    Custos Operacionais
+                  </CardTitle>
+                  <span className="text-xl font-bold text-[#EF4444]">
+                    {formatCurrency(metrics.totalCosts)}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 pt-0">
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <div className="h-36">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart key={animationKey} data={metrics.costsData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                        <XAxis 
+                          dataKey="day" 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          interval="preserveStartEnd"
+                        />
+                        <YAxis 
+                          stroke="rgba(245,245,247,0.42)" 
+                          tick={{ fontSize: 8 }}
+                          tickLine={false}
+                          width={30}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar 
+                          dataKey="value" 
+                          fill="#EF4444" 
+                          radius={[2, 2, 0, 0]}
+                          animationDuration={800}
+                          animationBegin={0}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Result Card - Large */}
+          <Card className={`border-[rgba(255,255,255,0.06)] rounded-2xl p-6 ${
+            isProfit 
+              ? "bg-gradient-to-br from-[#101018] to-[#0a1f0a] border-[rgba(34,197,94,0.2)]" 
+              : "bg-gradient-to-br from-[#101018] to-[#1f0a0a] border-[rgba(239,68,68,0.2)]"
+          }`}>
+            <CardHeader className="pb-2 p-0">
               <CardTitle className="text-[#F5F5F7] flex items-center gap-2">
-                <Euro className="w-5 h-5 text-[#A855F7]" />
-                Vendas Totais
+                <Calculator className="w-5 h-5" />
+                Resultado do Mês
               </CardTitle>
-              <span className="text-2xl font-bold text-[#22C55E]">
-                {formatCurrency(totalSales)}
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : (
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart key={animationKey} data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis 
-                      dataKey="day" 
-                      stroke="rgba(245,245,247,0.42)" 
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      stroke="rgba(245,245,247,0.42)" 
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar 
-                      dataKey="value" 
-                      fill="#A855F7" 
-                      radius={[4, 4, 0, 0]}
-                      animationDuration={800}
-                      animationBegin={0}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Refunds Chart */}
-        <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-[#F5F5F7] flex items-center gap-2">
-                <RotateCcw className="w-5 h-5 text-[#F97316]" />
-                Reembolsos
-              </CardTitle>
-              <span className="text-2xl font-bold text-[#F97316]">
-                {formatCurrency(totalRefunds)}
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : (
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart key={animationKey} data={refundsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis 
-                      dataKey="day" 
-                      stroke="rgba(245,245,247,0.42)" 
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      stroke="rgba(245,245,247,0.42)" 
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                      tickFormatter={(value) => `${value.toFixed(0)}`}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar 
-                      dataKey="value" 
-                      fill="#F97316" 
-                      radius={[4, 4, 0, 0]}
-                      animationDuration={800}
-                      animationBegin={100}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Costs Chart */}
-        <Card className="border-[rgba(255,255,255,0.06)] bg-[#101018]">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-[#F5F5F7] flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-[#EF4444]" />
-                Custos Operacionais
-              </CardTitle>
-              <span className="text-2xl font-bold text-[#EF4444]">
-                {formatCurrency(totalCosts)}
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : (
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart key={animationKey} data={costsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis 
-                      dataKey="day" 
-                      stroke="rgba(245,245,247,0.42)" 
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      stroke="rgba(245,245,247,0.42)" 
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                      tickFormatter={(value) => `${value.toFixed(0)}`}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar 
-                      dataKey="value" 
-                      fill="#EF4444" 
-                      radius={[4, 4, 0, 0]}
-                      animationDuration={800}
-                      animationBegin={200}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Result Card */}
-        <Card className={`border-[rgba(255,255,255,0.06)] ${
-          isProfit 
-            ? "bg-gradient-to-br from-[#101018] to-[#0a1f0a] border-[rgba(34,197,94,0.2)]" 
-            : "bg-gradient-to-br from-[#101018] to-[#1f0a0a] border-[rgba(239,68,68,0.2)]"
-        }`}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[#F5F5F7] flex items-center gap-2">
-              <Calculator className="w-5 h-5" />
-              Resultado do Mês
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center h-48">
+            </CardHeader>
+            <CardContent className="p-0 pt-4">
               {isLoading ? (
                 <LoadingSkeleton />
               ) : (
-                <>
-                  <div className={`flex items-center gap-2 mb-2 ${isProfit ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className={`flex items-center gap-3 mb-4 ${isProfit ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
                     {isProfit ? (
-                      <TrendingUp className="w-8 h-8" />
+                      <TrendingUp className="w-10 h-10" />
                     ) : (
-                      <TrendingDown className="w-8 h-8" />
+                      <TrendingDown className="w-10 h-10" />
                     )}
-                    <span className="text-xl font-semibold uppercase">
+                    <span className="text-2xl font-bold uppercase tracking-wide">
                       {isProfit ? "Lucro" : "Prejuízo"}
                     </span>
                   </div>
-                  <p className={`text-5xl font-bold ${isProfit ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
+                  <p className={`text-6xl font-bold ${isProfit ? "text-[#22C55E]" : "text-[#EF4444]"}`}>
                     {formatCurrency(Math.abs(displayedResult))}
                   </p>
-                  <p className="text-[rgba(245,245,247,0.42)] text-sm mt-4">
+                  <p className="text-[rgba(245,245,247,0.42)] text-sm mt-6">
                     Vendas - Reembolsos - Custos
                   </p>
-                  <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">
-                    {formatCurrency(totalSales)} - {formatCurrency(totalRefunds)} - {formatCurrency(totalCosts)}
+                  <p className="text-[rgba(245,245,247,0.52)] text-sm mt-2">
+                    {formatCurrency(metrics.totalSales)} - {formatCurrency(metrics.totalRefunds)} - {formatCurrency(metrics.totalCosts)}
                   </p>
-                </>
+                </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

@@ -68,6 +68,9 @@ export default async function DashboardSlugPage({
             clientSlug={client.slug}
             clientName={client.name}
             userName={session.name.split(" ")[0]}
+            clientPlan={client.plan}
+            clientStatus={client.status}
+            clientStartDate={client.created_at}
           />
         </div>
       </div>
