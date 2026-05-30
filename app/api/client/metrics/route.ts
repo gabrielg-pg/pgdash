@@ -52,11 +52,11 @@ export async function GET(request: NextRequest) {
     // Fetch refunds and costs from SUPABASE
     const supabase = await createClient()
 
-    // Fetch refunds data
+    // Fetch refunds data - NOTE: client_slug in refunds table stores the UUID, not the slug
     const { data: refunds } = await supabase
       .from('refunds')
       .select('data_compra, valor_reembolsado')
-      .eq('client_slug', clientSlug)
+      .eq('client_slug', clientId)  // Use clientId (UUID) because that's what's stored
 
     if (refunds) {
       refunds.forEach(row => {
@@ -75,11 +75,11 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Fetch costs data
+    // Fetch costs data - NOTE: client_slug may also store UUID
     const { data: costs } = await supabase
       .from('operational_costs')
       .select('value')
-      .eq('client_slug', clientSlug)
+      .eq('client_slug', clientId)  // Try with clientId (UUID) first
       .eq('month', month)
       .eq('year', year)
 
