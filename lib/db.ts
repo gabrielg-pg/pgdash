@@ -4,7 +4,7 @@ export const sql = neon(process.env.DATABASE_URL!)
 
 // Types
 export type UserRole = string
-export type ClientPlan = "START" | "PRO" | "SCALE"
+export type ClientPlan = "START" | "PRO" | "SCALE" | "SCALE_VERTEBRA" | "SCALE_GLOBAL"
 export type ClientStatus = "ACTIVE" | "PAUSED" | "ONBOARDING"
 
 export interface Client {
