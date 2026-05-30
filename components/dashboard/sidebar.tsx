@@ -52,10 +52,15 @@ interface SidebarProps {
   hasWeeklyReports?: boolean
 }
 
-import { TableIcon, RotateCcw, Mail, DollarSign } from "lucide-react"
+import { TableIcon, RotateCcw, Mail, DollarSign, Cog } from "lucide-react"
+
+// Verifica se o plano é Scale Global
+function isScaleGlobal(plan: string) {
+  return plan === "SCALE_GLOBAL"
+}
 
 const getClientNavItems = (slug: string, plan?: string) => {
-  const items = [
+  const baseItems = [
     { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
     { href: `/dashboards/${slug}/mapa`, label: "Mapa da Operação", icon: Map },
     { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
@@ -64,17 +69,19 @@ const getClientNavItems = (slug: string, plan?: string) => {
     { href: `/dashboards/${slug}/materiais`, label: "Materiais", icon: FolderOpen },
     { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
   ]
-  
-  // Add "Operação", "Reembolsos", "E-mails" and "Custos" only for SCALE plan
-  const isScalePlan = plan && plan.toUpperCase() === "SCALE"
-  if (isScalePlan) {
-    items.splice(3, 0, { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: TableIcon })
-    items.splice(4, 0, { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw })
-    items.splice(5, 0, { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail })
-    items.splice(6, 0, { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign })
+
+  const scaleGlobalItems = [
+    { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: Cog },
+    { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw },
+    { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail },
+    { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign },
+  ]
+
+  if (plan && isScaleGlobal(plan)) {
+    return [...baseItems, ...scaleGlobalItems]
   }
-  
-  return items
+
+  return baseItems
 }
 
 const adminNavItems = [
