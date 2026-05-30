@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { sql } from "@/lib/db"
-import { createClient } from "@/lib/supabase/server"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { WelcomeBanner } from "@/components/client/welcome-banner"
+import { ScaleGlobalDashboard } from "@/components/client/scale-global-dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Key, Bell, FolderOpen, TrendingUp, Clock, Activity, Store, Sparkles, Calendar, ShoppingCart, RotateCcw, DollarSign, Euro } from "lucide-react"
+import { Key, Bell, FolderOpen, TrendingUp, Clock, Activity, Store, Sparkles, Calendar } from "lucide-react"
 import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
@@ -36,56 +36,6 @@ async function getDashboardData(clientId: string) {
   }
 }
 
-async function getScaleGlobalMetrics(clientSlug: string) {
-  const supabase = await createClient()
-  const now = new Date()
-  const currentMonth = now.getMonth() + 1
-  const currentYear = now.getFullYear()
-
-  // Get daily operations (sales) for current month
-  const { data: salesData } = await supabase
-    .from('daily_operations')
-    .select('valor_vendas, vendas')
-    .eq('client_id', clientSlug)
-    .gte('operation_date', `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`)
-    .lt('operation_date', currentMonth === 12 
-      ? `${currentYear + 1}-01-01` 
-      : `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`)
-
-  // Get refunds for current month
-  const { data: refundsData } = await supabase
-    .from('refunds')
-    .select('valor_reembolsado')
-    .eq('client_slug', clientSlug)
-    .like('data_compra', `%/${String(currentMonth).padStart(2, '0')}/${currentYear}`)
-
-  // Get operational costs for current month
-  const { data: costsData } = await supabase
-    .from('operational_costs')
-    .select('value')
-    .eq('client_slug', clientSlug)
-    .eq('month', currentMonth)
-    .eq('year', currentYear)
-
-  // Calculate totals
-  const totalSales = salesData?.reduce((sum, row) => sum + (parseFloat(row.valor_vendas) || 0), 0) || 0
-  const totalOrders = salesData?.reduce((sum, row) => sum + (parseInt(row.vendas) || 0), 0) || 0
-  
-  const totalRefunds = refundsData?.reduce((sum, row) => {
-    const value = row.valor_reembolsado?.replace('€', '').replace(',', '.').trim()
-    return sum + (parseFloat(value) || 0)
-  }, 0) || 0
-  
-  const totalCosts = costsData?.reduce((sum, row) => sum + (parseFloat(row.value) || 0), 0) || 0
-
-  return {
-    totalSales,
-    totalOrders,
-    totalRefunds,
-    totalCosts,
-  }
-}
-
 export default async function DashboardSlugPage({
   params,
 }: {
@@ -106,9 +56,25 @@ export default async function DashboardSlugPage({
 
   const data = await getDashboardData(client.id)
   
-  // Get Scale Global metrics if client has SCALE_GLOBAL plan
+  // Check if client has SCALE_GLOBAL plan
   const isScaleGlobal = client.plan === "SCALE_GLOBAL"
-  const scaleMetrics = isScaleGlobal ? await getScaleGlobalMetrics(client.slug) : null
+  
+  // For SCALE_GLOBAL clients, render the special dashboard
+  if (isScaleGlobal) {
+    return (
+      <div className="min-h-screen bg-[#07070A]">
+        <div className="p-4 md:p-6 lg:p-8">
+          <ScaleGlobalDashboard 
+            clientSlug={client.slug}
+            clientName={client.name}
+            userName={session.name.split(" ")[0]}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // Regular dashboard for other plans
 
   const infoCards = [
     {
@@ -227,79 +193,6 @@ export default async function DashboardSlugPage({
             </Card>
           ))}
         </div>
-
-        {/* Scale Global Metrics - Only for SCALE_GLOBAL clients */}
-        {isScaleGlobal && scaleMetrics && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="card-premium border-[rgba(255,255,255,0.06)] bg-[#101018]">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Euro className="w-4 h-4 text-[#22C55E]" />
-                      <p className="text-sm text-[rgba(245,245,247,0.52)]">Total Vendas</p>
-                    </div>
-                    <p className="text-2xl font-bold text-[#22C55E]">
-                      {scaleMetrics.totalSales.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
-                    </p>
-                    <p className="text-xs text-[rgba(245,245,247,0.42)] mt-1">Este mês</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-premium border-[rgba(255,255,255,0.06)] bg-[#101018]">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <ShoppingCart className="w-4 h-4 text-[#3B82F6]" />
-                      <p className="text-sm text-[rgba(245,245,247,0.52)]">Nº Encomendas</p>
-                    </div>
-                    <p className="text-2xl font-bold text-[#3B82F6]">
-                      {scaleMetrics.totalOrders.toLocaleString('pt-PT')}
-                    </p>
-                    <p className="text-xs text-[rgba(245,245,247,0.42)] mt-1">Este mês</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-premium border-[rgba(255,255,255,0.06)] bg-[#101018]">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <RotateCcw className="w-4 h-4 text-[#F59E0B]" />
-                      <p className="text-sm text-[rgba(245,245,247,0.52)]">Total Reembolsos</p>
-                    </div>
-                    <p className="text-2xl font-bold text-[#F59E0B]">
-                      {scaleMetrics.totalRefunds.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
-                    </p>
-                    <p className="text-xs text-[rgba(245,245,247,0.42)] mt-1">Este mês</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-premium border-[rgba(255,255,255,0.06)] bg-[#101018]">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-4 h-4 text-[#EF4444]" />
-                      <p className="text-sm text-[rgba(245,245,247,0.52)]">Custos Operacionais</p>
-                    </div>
-                    <p className="text-2xl font-bold text-[#EF4444]">
-                      {scaleMetrics.totalCosts.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
-                    </p>
-                    <p className="text-xs text-[rgba(245,245,247,0.42)] mt-1">Este mês</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
