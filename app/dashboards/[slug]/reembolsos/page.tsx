@@ -30,8 +30,8 @@ export default async function ReembolsosPage({ params }: { params: Promise<{ slu
     redirect("/login")
   }
 
-  // Check if client has SCALE plan
-  if (client.plan?.toUpperCase() !== "SCALE") {
+  // Check if client has SCALE_GLOBAL plan
+  if (client.plan !== "SCALE_GLOBAL") {
     redirect(`/dashboards/${slug}`)
   }
 

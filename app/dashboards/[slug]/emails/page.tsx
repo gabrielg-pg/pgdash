@@ -26,8 +26,8 @@ export default async function EmailsPage({ params }: PageProps) {
 
   const client = clients[0]
 
-  // Check if client has SCALE plan
-  if (client.plan?.toUpperCase() !== "SCALE") {
+  // Check if client has SCALE_GLOBAL plan
+  if (client.plan !== "SCALE_GLOBAL") {
     redirect(`/dashboards/${slug}`)
   }
 
