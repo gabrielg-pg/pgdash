@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Save, X } from "lucide-react"
+import { Plus, Save, X, Loader2 } from "lucide-react"
+import { getOperationalCosts, saveOperationalCosts } from "@/app/actions/operational-costs"
 
 interface CostItem {
   id: string
@@ -32,31 +33,40 @@ interface OperationalCostsProps {
 
 export function OperationalCosts({ clientId }: OperationalCostsProps) {
   const currentMonth = new Date().getMonth()
+  const currentYear = new Date().getFullYear()
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [costs, setCosts] = useState<CostItem[]>([])
   const [saveMessage, setSaveMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
 
-  const storageKey = `custos_op_${clientId}`
-
-  // Load data from localStorage
+  // Load data from Supabase
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey)
-    if (saved) {
+    async function loadCosts() {
+      setIsLoading(true)
       try {
-        const data = JSON.parse(saved)
-        setCosts(data[`month_${selectedMonth}`] || [])
-      } catch {
+        const data = await getOperationalCosts(clientId, selectedMonth + 1, currentYear)
+        const formattedCosts = data.map((item: { id: string; service: string; currency: string; value: number }) => ({
+          id: item.id,
+          service: item.service,
+          currency: item.currency,
+          value: String(item.value)
+        }))
+        setCosts(formattedCosts)
+      } catch (error) {
+        console.error("Error loading costs:", error)
         setCosts([])
+      } finally {
+        setIsLoading(false)
       }
-    } else {
-      setCosts([])
     }
-  }, [selectedMonth, storageKey])
+    loadCosts()
+  }, [selectedMonth, clientId, currentYear])
 
   // Add new row
   const addRow = () => {
     const newItem: CostItem = {
-      id: String(Date.now()),
+      id: `new_${Date.now()}`,
       service: "",
       currency: "EUR",
       value: ""
@@ -74,24 +84,43 @@ export function OperationalCosts({ clientId }: OperationalCostsProps) {
     setCosts(costs.filter(c => c.id !== id))
   }
 
-  // Save to localStorage
-  const saveData = () => {
-    const saved = localStorage.getItem(storageKey)
-    let allData: Record<string, CostItem[]> = {}
-    
-    if (saved) {
-      try {
-        allData = JSON.parse(saved)
-      } catch {
-        allData = {}
+  // Save to Supabase
+  const saveData = async () => {
+    setIsSaving(true)
+    try {
+      const costsToSave = costs
+        .filter(c => c.service.trim() && parseFloat(c.value) > 0)
+        .map(c => ({
+          id: c.id.startsWith('new_') ? undefined : c.id,
+          service: c.service,
+          currency: c.currency,
+          value: parseFloat(c.value) || 0
+        }))
+
+      const result = await saveOperationalCosts(clientId, selectedMonth + 1, currentYear, costsToSave)
+      
+      if (result.success) {
+        setSaveMessage("Salvo!")
+        // Reload data to get updated IDs
+        const data = await getOperationalCosts(clientId, selectedMonth + 1, currentYear)
+        const formattedCosts = data.map((item: { id: string; service: string; currency: string; value: number }) => ({
+          id: item.id,
+          service: item.service,
+          currency: item.currency,
+          value: String(item.value)
+        }))
+        setCosts(formattedCosts)
+      } else {
+        setSaveMessage("Erro!")
       }
+      setTimeout(() => setSaveMessage(""), 2000)
+    } catch (error) {
+      console.error("Error saving costs:", error)
+      setSaveMessage("Erro!")
+      setTimeout(() => setSaveMessage(""), 2000)
+    } finally {
+      setIsSaving(false)
     }
-    
-    allData[`month_${selectedMonth}`] = costs
-    localStorage.setItem(storageKey, JSON.stringify(allData))
-    
-    setSaveMessage("Salvo!")
-    setTimeout(() => setSaveMessage(""), 2000)
   }
 
   // Calculate totals by currency
@@ -139,13 +168,20 @@ export function OperationalCosts({ clientId }: OperationalCostsProps) {
           <table className="w-full">
             <thead>
               <tr className="bg-[#1a1a24] text-[rgba(245,245,247,0.6)] text-xs font-medium uppercase tracking-wider">
-                <th className="px-4 py-3 text-left w-1/2">Serviço</th>
+                <th className="px-4 py-3 text-left w-1/2">Servico</th>
                 <th className="px-4 py-3 text-left w-2/5">Valor</th>
                 <th className="px-4 py-3 text-center w-20">Excluir</th>
               </tr>
             </thead>
             <tbody>
-              {costs.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={3} className="px-4 py-12 text-center text-[rgba(245,245,247,0.4)]">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    A carregar...
+                  </td>
+                </tr>
+              ) : costs.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-4 py-12 text-center text-[rgba(245,245,247,0.4)]">
                     Nenhum custo registrado. Clique em + para adicionar.
@@ -161,7 +197,7 @@ export function OperationalCosts({ clientId }: OperationalCostsProps) {
                       <Input
                         value={item.service}
                         onChange={(e) => updateItem(item.id, "service", e.target.value)}
-                        placeholder="Nome do serviço"
+                        placeholder="Nome do servico"
                         className="bg-[#1a1a24] border-[rgba(255,255,255,0.1)] text-[#F5F5F7] placeholder:text-[rgba(245,245,247,0.3)] h-9"
                       />
                     </td>
@@ -243,11 +279,14 @@ export function OperationalCosts({ clientId }: OperationalCostsProps) {
               </Button>
               <Button
                 onClick={saveData}
+                disabled={isSaving}
                 size="sm"
                 className="bg-[#7F77DD] hover:bg-[#6E67CC] text-white h-9 min-w-[80px]"
               >
-                {saveMessage ? (
-                  <span className="text-emerald-300">{saveMessage}</span>
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : saveMessage ? (
+                  <span className={saveMessage === "Salvo!" ? "text-emerald-300" : "text-red-300"}>{saveMessage}</span>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-1" />
