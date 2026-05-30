@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       .select('data_compra, valor_reembolsado')
       .eq('client_slug', clientId)  // Use clientId (UUID) because that's what's stored
 
-    if (refunds) {
+    if (refunds && refunds.length > 0) {
       refunds.forEach(row => {
         const parts = row.data_compra?.split('/')
         if (parts && parts.length === 3) {
