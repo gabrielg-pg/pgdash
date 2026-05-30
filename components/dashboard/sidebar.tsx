@@ -57,7 +57,6 @@ import { TableIcon, RotateCcw, Mail, DollarSign } from "lucide-react"
 const getClientNavItems = (slug: string, plan?: string) => {
   const items = [
     { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
-    { href: `/dashboards/${slug}/mapa`, label: "Mapa da Operação", icon: Map },
     { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
     { href: `/dashboards/${slug}/acessos`, label: "Acessos", icon: Key },
     { href: `/dashboards/${slug}/avisos`, label: "Avisos", icon: Bell },
