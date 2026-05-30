@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
 
   // Initialize arrays with zeros
   const salesByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
+  const adspendByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
   const refundsByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
   const costsByDay = Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, value: 0 }))
 
@@ -27,9 +28,9 @@ export async function GET(request: NextRequest) {
     : `${year}-${String(month + 1).padStart(2, '0')}-01`
 
   try {
-    // Fetch sales data from NEON (daily_operations table)
+    // Fetch sales and adspend data from NEON (daily_operations table)
     const sales = await sql`
-      SELECT operation_date, valor_vendas
+      SELECT operation_date, valor_vendas, adspend
       FROM daily_operations
       WHERE client_id = ${clientId}::uuid
         AND operation_date >= ${startDate}::date
@@ -37,10 +38,13 @@ export async function GET(request: NextRequest) {
     `
 
     if (sales && sales.length > 0) {
-      sales.forEach((row: { operation_date: string | Date; valor_vendas: string | number }) => {
+      sales.forEach((row: { operation_date: string | Date; valor_vendas: string | number; adspend: string | number }) => {
         const day = new Date(row.operation_date).getDate()
         if (salesByDay[day - 1]) {
           salesByDay[day - 1].value += parseFloat(String(row.valor_vendas)) || 0
+        }
+        if (adspendByDay[day - 1]) {
+          adspendByDay[day - 1].value += parseFloat(String(row.adspend)) || 0
         }
       })
     }
@@ -63,8 +67,9 @@ export async function GET(request: NextRequest) {
           const refundYear = parseInt(parts[2])
           
           if (refundMonth === month && refundYear === year && refundsByDay[refundDay - 1]) {
-            const value = row.valor_reembolsado?.replace('€', '').replace(',', '.').replace(/\s/g, '').trim()
-            refundsByDay[refundDay - 1].value += parseFloat(value) || 0
+            // Parse valor_reembolsado - remove € symbol and convert comma to dot
+            const valueStr = row.valor_reembolsado?.replace('€', '').replace(',', '.').replace(/\s/g, '').trim()
+            refundsByDay[refundDay - 1].value += parseFloat(valueStr) || 0
           }
         }
       })
@@ -78,9 +83,10 @@ export async function GET(request: NextRequest) {
       .eq('month', month)
       .eq('year', year)
 
-    // Costs are monthly - put total in first day for display
-    if (costs) {
-      const totalCostsValue = costs.reduce((sum, row) => sum + (parseFloat(row.value) || 0), 0)
+    // Costs are monthly totals - distribute evenly or show in first day
+    if (costs && costs.length > 0) {
+      const totalCostsValue = costs.reduce((sum, row) => sum + (parseFloat(String(row.value)) || 0), 0)
+      // Put total in first day for display purposes
       if (costsByDay[0]) {
         costsByDay[0].value = totalCostsValue
       }
@@ -88,14 +94,17 @@ export async function GET(request: NextRequest) {
 
     // Calculate totals
     const totalSales = salesByDay.reduce((sum, d) => sum + d.value, 0)
+    const totalAdspend = adspendByDay.reduce((sum, d) => sum + d.value, 0)
     const totalRefunds = refundsByDay.reduce((sum, d) => sum + d.value, 0)
     const totalCosts = costsByDay.reduce((sum, d) => sum + d.value, 0)
 
     return NextResponse.json({
       salesData: salesByDay,
+      adspendData: adspendByDay,
       refundsData: refundsByDay,
       costsData: costsByDay,
       totalSales,
+      totalAdspend,
       totalRefunds,
       totalCosts,
     })
@@ -104,9 +113,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       error: "Failed to fetch metrics",
       salesData: salesByDay,
+      adspendData: adspendByDay,
       refundsData: refundsByDay,
       costsData: costsByDay,
       totalSales: 0,
+      totalAdspend: 0,
       totalRefunds: 0,
       totalCosts: 0,
     }, { status: 500 })
