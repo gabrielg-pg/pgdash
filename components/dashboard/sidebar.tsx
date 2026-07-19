@@ -52,13 +52,15 @@ interface SidebarProps {
   hasWeeklyReports?: boolean
 }
 
-import { TableIcon, RotateCcw, Mail, DollarSign, Cog } from "lucide-react"
+import { TableIcon, RotateCcw, Mail, DollarSign, Cog, Layers } from "lucide-react"
 
 function isScaleGlobal(plan: string) {
   return plan === "SCALE_GLOBAL"
 }
 
 const getClientNavItems = (slug: string, plan: string) => {
+  const estruturasItem = { href: `/dashboards/${slug}/estruturas`, label: "Estruturas", icon: Layers }
+
   const baseItems = [
     { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
     { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
@@ -70,6 +72,7 @@ const getClientNavItems = (slug: string, plan: string) => {
 
   const scaleGlobalItems = [
     { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: Cog },
+    estruturasItem,
     { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw },
     { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail },
     { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign },
@@ -79,7 +82,7 @@ const getClientNavItems = (slug: string, plan: string) => {
     return [...baseItems, ...scaleGlobalItems]
   }
 
-  return baseItems
+  return [...baseItems, estruturasItem]
 }
 
 const adminNavItems = [
