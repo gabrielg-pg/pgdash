@@ -52,7 +52,7 @@ interface SidebarProps {
   hasWeeklyReports?: boolean
 }
 
-import { TableIcon, RotateCcw, Mail, DollarSign, Cog, Layers } from "lucide-react"
+import { TableIcon, RotateCcw, Mail, DollarSign, Cog, Layers, Link2 } from "lucide-react"
 
 function isScaleGlobal(plan: string) {
   return plan === "SCALE_GLOBAL"
@@ -73,6 +73,7 @@ const getClientNavItems = (slug: string, plan: string) => {
 
   // Itens exclusivos do Scale Global
   const scaleGlobalOnlyItems = [
+    { href: `/dashboards/${slug}/conexoes`, label: "Conexões", icon: Link2 },
     { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw },
     { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail },
     { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign },
