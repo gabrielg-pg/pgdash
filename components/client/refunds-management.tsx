@@ -76,6 +76,7 @@ const estadosOptions = [
 interface RefundsManagementProps {
   clientId: string
   initialData?: (RefundData & { id: string })[]
+  isGlobal?: boolean
 }
 
 const mapRefunds = (data: (RefundData & { id: string })[]): Refund[] =>
@@ -95,7 +96,9 @@ const mapRefunds = (data: (RefundData & { id: string })[]): Refund[] =>
     estado: r.estado || "Pendente",
   }))
 
-export function RefundsManagement({ clientId, initialData = [] }: RefundsManagementProps) {
+export function RefundsManagement({ clientId, initialData = [], isGlobal = true }: RefundsManagementProps) {
+  // Símbolo da moeda: € (global) ou R$ (nacional).
+  const currencySymbol = isGlobal ? "€" : "R$"
   const currentMonth = new Date().getMonth()
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   // Dados já vêm prontos do servidor: renderiza imediatamente, sem spinner.
@@ -225,7 +228,7 @@ export function RefundsManagement({ clientId, initialData = [] }: RefundsManagem
             <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">Total Reembolsos</p>
           </div>
           <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
-            <p className="text-white text-2xl font-bold">{totalReembolsado.toFixed(2)} €</p>
+            <p className="text-white text-2xl font-bold">{isGlobal ? `${totalReembolsado.toFixed(2)} €` : `R$ ${totalReembolsado.toFixed(2)}`}</p>
             <p className="text-[rgba(245,245,247,0.52)] text-xs mt-1">Total Reembolsado</p>
           </div>
           <div className="flex-1 bg-[#1a2744] rounded-xl p-4">
@@ -293,10 +296,10 @@ export function RefundsManagement({ clientId, initialData = [] }: RefundsManagem
                     <th className="px-3 py-3 text-left whitespace-nowrap">Nº Encomenda</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Nome da Peça</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Tamanho</th>
-                    <th className="px-3 py-3 text-left whitespace-nowrap">Preço Pago (€)</th>
+                    <th className="px-3 py-3 text-left whitespace-nowrap">Preço Pago ({currencySymbol})</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Motivo Devolução</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Tipo Resolução</th>
-                    <th className="px-3 py-3 text-left whitespace-nowrap">Valor Reembolsado (€)</th>
+                    <th className="px-3 py-3 text-left whitespace-nowrap">Valor Reembolsado ({currencySymbol})</th>
                     <th className="px-3 py-3 text-left whitespace-nowrap">Estado</th>
                   </tr>
                 </thead>
@@ -365,11 +368,11 @@ export function RefundsManagement({ clientId, initialData = [] }: RefundsManagem
                       </td>
                       <td className="px-3 py-2">
                         <div className="relative flex items-center">
-                          <span className="absolute left-2 text-[rgba(255,255,255,0.5)] text-sm">€</span>
+                          <span className="absolute left-2 text-[rgba(255,255,255,0.5)] text-sm">{currencySymbol}</span>
                           <Input
                             value={refund.precoPago}
                             onChange={(e) => updateRefund(refund.id, "precoPago", e.target.value)}
-                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-8 text-sm w-24 pl-6"
+                            className={`bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-8 text-sm w-24 ${isGlobal ? 'pl-6' : 'pl-9'}`}
                           />
                         </div>
                       </td>
@@ -409,11 +412,11 @@ export function RefundsManagement({ clientId, initialData = [] }: RefundsManagem
                       </td>
                       <td className="px-3 py-2">
                         <div className="relative flex items-center">
-                          <span className="absolute left-2 text-[rgba(255,255,255,0.5)] text-sm">€</span>
+                          <span className="absolute left-2 text-[rgba(255,255,255,0.5)] text-sm">{currencySymbol}</span>
                           <Input
                             value={refund.valorReembolsado}
                             onChange={(e) => updateRefund(refund.id, "valorReembolsado", e.target.value)}
-                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-8 text-sm w-28 pl-6"
+                            className={`bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-8 text-sm w-28 ${isGlobal ? 'pl-6' : 'pl-9'}`}
                             placeholder="0.00"
                           />
                         </div>

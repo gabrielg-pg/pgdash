@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Save, TableIcon, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { getMonthlyDeductions } from "@/app/actions/operations-summary"
 
 interface Operation {
   id?: string
@@ -56,6 +57,8 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
   const [operations, setOperations] = useState<Operation[]>([])
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
+  // Totais a descontar no fecho do mês: custos operacionais e reembolsos.
+  const [deductions, setDeductions] = useState({ operationalCosts: 0, refunds: 0 })
   const { toast } = useToast()
 
   // Generate rows for the selected month
@@ -86,7 +89,11 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
     const loadMonthData = async () => {
       setLoading(true)
       try {
-        const response = await fetch(`/api/client/operations?clientId=${clientId}&month=${selectedMonth + 1}&year=${YEAR}`)
+        const [response, ded] = await Promise.all([
+          fetch(`/api/client/operations?clientId=${clientId}&month=${selectedMonth + 1}&year=${YEAR}`),
+          getMonthlyDeductions(clientId, selectedMonth + 1, YEAR),
+        ])
+        setDeductions(ded)
         if (response.ok) {
           const data = await response.json()
           setOperations(generateMonthRows(selectedMonth, data.operations || []))
@@ -270,6 +277,10 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
     roas: isNaN(avgRoas) ? 0 : avgRoas
   }
 
+  // Lucro líquido = lucro da operação − custos operacionais − reembolsos do mês.
+  const grossProfit = totals.profit
+  const netProfit = grossProfit - deductions.operationalCosts - deductions.refunds
+
   const selectedMonthName = MONTHS[selectedMonth].label.toUpperCase()
 
   return (
@@ -333,6 +344,7 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
             <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -512,6 +524,36 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
               </tbody>
             </table>
           </div>
+
+          {/* Resultado líquido do mês */}
+          <div className="border-t border-purple-500/20 bg-[#0A0A0F] px-6 py-6">
+            <h3 className="text-sm font-semibold text-[rgba(245,245,247,0.72)] uppercase tracking-wider mb-4">
+              Resultado Líquido — {selectedMonthName} {YEAR}
+            </h3>
+            <div className="ml-auto w-full max-w-md space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[rgba(245,245,247,0.72)]">Lucro Bruto (Operação)</span>
+                <span className={`font-semibold ${grossProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {formatMoney(grossProfit)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[rgba(245,245,247,0.72)]">{'(\u2212) Custos Operacionais'}</span>
+                <span className="font-semibold text-amber-400">{formatMoney(deductions.operationalCosts)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[rgba(245,245,247,0.72)]">{'(\u2212) Reembolsos'}</span>
+                <span className="font-semibold text-amber-400">{formatMoney(deductions.refunds)}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-[rgba(255,255,255,0.1)] pt-3 mt-1">
+                <span className="text-base font-bold text-[#F5F5F7]">Lucro Líquido</span>
+                <span className={`text-lg font-bold px-3 py-1 rounded-md ${netProfit >= 0 ? 'text-emerald-400 bg-emerald-500/15' : 'text-red-400 bg-red-500/15'}`}>
+                  {formatMoney(netProfit)}
+                </span>
+              </div>
+            </div>
+          </div>
+          </>
         )}
       </CardContent>
     </Card>

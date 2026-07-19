@@ -62,6 +62,7 @@ const getClientNavItems = (slug: string, plan: string) => {
   const operacaoItem = { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: Cog }
   const estruturasItem = { href: `/dashboards/${slug}/estruturas`, label: "Estruturas", icon: Layers }
   const custosItem = { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign }
+  const reembolsosItem = { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw }
 
   const baseItems = [
     { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
@@ -74,16 +75,15 @@ const getClientNavItems = (slug: string, plan: string) => {
 
   // Itens exclusivos do Scale Global
   const scaleGlobalOnlyItems = [
-    { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw },
     { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail },
   ]
 
   if (isScaleGlobal(plan)) {
-    return [...baseItems, operacaoItem, estruturasItem, ...scaleGlobalOnlyItems, custosItem]
+    return [...baseItems, operacaoItem, estruturasItem, reembolsosItem, ...scaleGlobalOnlyItems, custosItem]
   }
 
-  // Planos nacionais: Operação (R$) + Estruturas + Custos Operacionais (R$)
-  return [...baseItems, operacaoItem, estruturasItem, custosItem]
+  // Planos nacionais: Operação (R$) + Estruturas + Reembolsos (R$) + Custos Operacionais (R$)
+  return [...baseItems, operacaoItem, estruturasItem, reembolsosItem, custosItem]
 }
 
 const adminNavItems = [

@@ -16,10 +16,8 @@ export default async function ReembolsosPage({ params }: { params: Promise<{ slu
     redirect("/login")
   }
 
-  // Check if client has SCALE_GLOBAL plan
-  if (client.plan !== "SCALE_GLOBAL") {
-    redirect(`/dashboards/${slug}`)
-  }
+  // Scale Global usa € ; planos nacionais usam R$.
+  const isGlobal = client.plan === "SCALE_GLOBAL"
 
   // Busca os reembolsos no servidor para renderizar sem spinner no cliente.
   const initialRefunds = await getRefunds(client.id)
@@ -33,7 +31,7 @@ export default async function ReembolsosPage({ params }: { params: Promise<{ slu
         </p>
       </div>
 
-      <RefundsManagement clientId={client.id} initialData={initialRefunds as any[]} />
+      <RefundsManagement clientId={client.id} initialData={initialRefunds as any[]} isGlobal={isGlobal} />
     </div>
   )
 }
