@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +32,7 @@ interface InitialCost {
   service: string
   currency: string
   value: number
+  month?: number
 }
 
 interface OperationalCostsProps {
@@ -50,6 +51,22 @@ const mapCosts = (data: InitialCost[]): CostItem[] =>
     value: String(item.value),
   }))
 
+// Agrupa os custos do ano por mês (índice 0-11).
+const groupByMonth = (data: InitialCost[]): Record<number, CostItem[]> => {
+  const grouped: Record<number, CostItem[]> = {}
+  for (const item of data) {
+    const monthIndex = (item.month ?? 1) - 1
+    if (!grouped[monthIndex]) grouped[monthIndex] = []
+    grouped[monthIndex].push({
+      id: item.id,
+      service: item.service,
+      currency: item.currency,
+      value: String(item.value),
+    })
+  }
+  return grouped
+}
+
 export function OperationalCosts({
   clientId,
   initialData = [],
@@ -64,34 +81,23 @@ export function OperationalCosts({
   const defaultCurrency = isGlobal ? "EUR" : "BRL"
 
   const [selectedMonth, setSelectedMonth] = useState(startMonth)
-  const [costs, setCosts] = useState<CostItem[]>(mapCosts(initialData))
+  // Todos os meses já vêm do servidor: trocar de mês é instantâneo (sem rede).
+  const [costsByMonth, setCostsByMonth] = useState<Record<number, CostItem[]>>(
+    () => groupByMonth(initialData)
+  )
   const [saveMessage, setSaveMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  // Evita refazer o fetch no primeiro render (dados já vêm do servidor)
-  const isFirstRender = useRef(true)
 
-  // Recarrega os dados apenas quando o usuário troca de mês
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      return
-    }
+  // Custos do mês selecionado (derivado do estado agrupado).
+  const costs = costsByMonth[selectedMonth] ?? []
 
-    async function loadCosts() {
-      setIsLoading(true)
-      try {
-        const data = await getOperationalCosts(clientId, selectedMonth + 1, currentYear)
-        setCosts(mapCosts(data as InitialCost[]))
-      } catch (error) {
-        console.error("Error loading costs:", error)
-        setCosts([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    loadCosts()
-  }, [selectedMonth, clientId, currentYear])
+  // Atualiza apenas o mês selecionado no estado agrupado.
+  const setCurrentMonthCosts = (updater: (prev: CostItem[]) => CostItem[]) => {
+    setCostsByMonth((prev) => ({
+      ...prev,
+      [selectedMonth]: updater(prev[selectedMonth] ?? []),
+    }))
+  }
 
   // Add new row
   const addRow = () => {
@@ -101,17 +107,17 @@ export function OperationalCosts({
       currency: defaultCurrency,
       value: ""
     }
-    setCosts([...costs, newItem])
+    setCurrentMonthCosts((prev) => [...prev, newItem])
   }
 
   // Update item
   const updateItem = (id: string, field: keyof CostItem, value: string) => {
-    setCosts(costs.map(c => c.id === id ? { ...c, [field]: value } : c))
+    setCurrentMonthCosts((prev) => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
   }
 
   // Delete item
   const deleteItem = (id: string) => {
-    setCosts(costs.filter(c => c.id !== id))
+    setCurrentMonthCosts((prev) => prev.filter(c => c.id !== id))
   }
 
   // Save to Supabase
@@ -131,9 +137,10 @@ export function OperationalCosts({
       
       if (result.success) {
         setSaveMessage("Salvo!")
-        // Reload data to get updated IDs
+        // Recarrega só o mês salvo para obter os IDs atualizados
         const data = await getOperationalCosts(clientId, selectedMonth + 1, currentYear)
-        setCosts(mapCosts(data as InitialCost[]))
+        const refreshed = mapCosts(data as InitialCost[])
+        setCostsByMonth((prev) => ({ ...prev, [selectedMonth]: refreshed }))
       } else {
         setSaveMessage("Erro!")
       }
@@ -198,14 +205,7 @@ export function OperationalCosts({
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan={3} className="px-4 py-12 text-center text-[rgba(245,245,247,0.4)]">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
-                    A carregar...
-                  </td>
-                </tr>
-              ) : costs.length === 0 ? (
+              {costs.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-4 py-12 text-center text-[rgba(245,245,247,0.4)]">
                     Nenhum custo registrado. Clique em + para adicionar.

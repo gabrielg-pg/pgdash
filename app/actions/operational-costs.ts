@@ -21,6 +21,26 @@ export async function getOperationalCosts(clientId: string, month: number, year:
   return data || []
 }
 
+// Busca TODOS os custos do ano numa única query.
+// Permite trocar de mês no cliente sem novas chamadas de rede.
+export async function getOperationalCostsForYear(clientId: string, year: number) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('operational_costs')
+    .select('*')
+    .eq('client_slug', clientId)
+    .eq('year', year)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error("Error fetching operational costs for year:", error)
+    return []
+  }
+
+  return data || []
+}
+
 export async function saveOperationalCosts(
   clientId: string, 
   month: number, 
