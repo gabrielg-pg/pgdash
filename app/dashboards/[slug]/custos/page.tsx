@@ -1,31 +1,16 @@
 import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth"
-import { sql } from "@/lib/db"
+import { getClientBySlugCached } from "@/lib/db"
 import { OperationalCosts } from "@/components/client/operational-costs"
 import { getOperationalCostsForYear } from "@/app/actions/operational-costs"
 
 export const dynamic = 'force-dynamic'
 
-async function getClientBySlug(slug: string) {
-  try {
-    const result = await sql`
-      SELECT id, name, slug, plan FROM clients WHERE slug = ${slug}
-    `
-    return result[0] || null
-  } catch {
-    return null
-  }
-}
-
 export default async function CustosPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const session = await getSession()
-  
-  if (!session) {
-    redirect("/login")
-  }
 
-  const client = await getClientBySlug(slug)
+  // O layout já garante a autenticação, então dispensamos o getSession() aqui.
+  // Usamos o cliente cacheado (deduplicado) em vez de refazer a query.
+  const client = await getClientBySlugCached(slug)
   
   if (!client) {
     redirect("/login")

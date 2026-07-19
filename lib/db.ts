@@ -1,6 +1,19 @@
 import { neon } from "@neondatabase/serverless"
+import { cache } from "react"
 
 export const sql = neon(process.env.DATABASE_URL!)
+
+// Deduplicado por request: layout e página buscam o mesmo cliente uma só vez.
+export const getClientBySlugCached = cache(async (slug: string) => {
+  try {
+    const result = await sql`
+      SELECT * FROM clients WHERE slug = ${slug}
+    `
+    return result[0] || null
+  } catch {
+    return null
+  }
+})
 
 // Types
 export type UserRole = string

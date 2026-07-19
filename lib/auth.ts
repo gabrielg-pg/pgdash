@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { cache } from "react"
 import { sql, type User, type Client } from "./db"
 import bcrypt from "bcryptjs"
 
@@ -56,7 +57,9 @@ export async function createSession(userId: string): Promise<string> {
   return sessionId
 }
 
-export async function getSession(): Promise<SessionUser | null> {
+// Deduplicado por request com cache(): layout e página compartilham a mesma
+// consulta em vez de rodar o JOIN de sessão duas vezes na mesma navegação.
+export const getSession = cache(async (): Promise<SessionUser | null> => {
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get(SESSION_COOKIE)
 
@@ -118,7 +121,7 @@ export async function getSession(): Promise<SessionUser | null> {
     console.error("Error getting session:", error)
     return null
   }
-}
+})
 
 export async function destroySession(): Promise<void> {
   const cookieStore = await cookies()

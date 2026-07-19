@@ -1,34 +1,16 @@
 import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth"
-import { sql } from "@/lib/db"
+import { getClientBySlugCached } from "@/lib/db"
 import { RefundsManagement } from "@/components/client/refunds-management"
 import { getRefunds } from "@/app/actions/refunds"
 
 export const dynamic = 'force-dynamic'
 
-async function getClientBySlug(slug: string) {
-  try {
-    const result = await sql`
-      SELECT id, name, slug, plan FROM clients WHERE slug = ${slug}
-    `
-    return result[0] || null
-  } catch {
-    return null
-  }
-}
-
 export default async function ReembolsosPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
 
-  // Sessão e cliente não dependem um do outro: busca em paralelo.
-  const [session, client] = await Promise.all([
-    getSession(),
-    getClientBySlug(slug),
-  ])
-  
-  if (!session) {
-    redirect("/login")
-  }
+  // O layout já garante a autenticação, então dispensamos o getSession() aqui.
+  // Usamos o cliente cacheado (deduplicado) em vez de refazer a query.
+  const client = await getClientBySlugCached(slug)
 
   if (!client) {
     redirect("/login")

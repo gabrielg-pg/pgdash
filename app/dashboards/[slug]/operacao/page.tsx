@@ -1,20 +1,8 @@
 import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth"
-import { sql } from "@/lib/db"
+import { sql, getClientBySlugCached } from "@/lib/db"
 import { OperationsSpreadsheet } from "@/components/client/operations-spreadsheet"
 
 export const dynamic = 'force-dynamic'
-
-async function getClientBySlug(slug: string) {
-  try {
-    const result = await sql`
-      SELECT id, name, slug, plan FROM clients WHERE slug = ${slug}
-    `
-    return result[0] || null
-  } catch {
-    return null
-  }
-}
 
 async function getOperations(clientId: string, month: number, year: number) {
   try {
@@ -35,13 +23,9 @@ async function getOperations(clientId: string, month: number, year: number) {
 
 export default async function OperacaoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const session = await getSession()
-  
-  if (!session) {
-    redirect("/login")
-  }
 
-  const client = await getClientBySlug(slug)
+  // O layout já garante a autenticação; usamos o cliente cacheado (deduplicado).
+  const client = await getClientBySlugCached(slug)
   
   if (!client) {
     redirect("/login")
