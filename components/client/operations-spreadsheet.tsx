@@ -20,6 +20,7 @@ interface Operation {
 interface OperationsSpreadsheetProps {
   clientId: string
   initialData: Operation[]
+  isGlobal?: boolean
 }
 
 const MONTHS = [
@@ -49,7 +50,7 @@ function formatDateBR(date: string): string {
   return `${day}/${month}/${year}`
 }
 
-export function OperationsSpreadsheet({ clientId, initialData }: OperationsSpreadsheetProps) {
+export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }: OperationsSpreadsheetProps) {
   const currentMonth = new Date().getMonth()
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [operations, setOperations] = useState<Operation[]>([])
@@ -203,9 +204,22 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
     }).format(safeValue)
   }
 
+  const formatBRL = (value: number) => {
+    const safeValue = isNaN(value) || value === null || value === undefined ? 0 : value
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(safeValue)
+  }
+
+  // Moeda principal: € (global) ou R$ (nacional)
+  const formatMoney = isGlobal ? formatEuro : formatBRL
+
   const calculateProfit = (op: Operation) => {
-    const cogsInEur = (op.cogs || 0) * USD_TO_EUR
-    return (op.valor_vendas || 0) - (op.adspend || 0) - cogsInEur
+    // Global: COGS em $ convertido para € pelo câmbio.
+    // Nacional: tudo em R$, sem conversão.
+    const cogsValue = isGlobal ? (op.cogs || 0) * USD_TO_EUR : (op.cogs || 0)
+    return (op.valor_vendas || 0) - (op.adspend || 0) - cogsValue
   }
 
   const calculateProfitPercent = (op: Operation) => {
@@ -233,7 +247,7 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
   const totalValorVendas = safeSum(operations, 'valor_vendas')
   const totalAdspend = safeSum(operations, 'adspend')
   const totalCogs = safeSum(operations, 'cogs')
-  const totalProfit = totalValorVendas - totalAdspend - (totalCogs * USD_TO_EUR)
+  const totalProfit = totalValorVendas - totalAdspend - (isGlobal ? totalCogs * USD_TO_EUR : totalCogs)
   
   const opsWithSales = operations.filter(op => Number(op.valor_vendas) > 0)
   const opsWithAdspend = operations.filter(op => Number(op.adspend) > 0)
@@ -330,19 +344,21 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
                     Vendas
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
-                    Valor Vendas (€)
+                    {isGlobal ? "Valor Vendas (€)" : "Valor Vendas (R$)"}
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
-                    Adspend (€)
+                    {isGlobal ? "Adspend (€)" : "Adspend (R$)"}
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
-                    COGS ($)
+                    {isGlobal ? "COGS ($)" : "COGS (R$)"}
                   </th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
-                    Câmbio
-                  </th>
+                  {isGlobal && (
+                    <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
+                      Câmbio
+                    </th>
+                  )}
                   <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[130px]">
-                    Lucro/Prejuízo (€)
+                    {isGlobal ? "Lucro/Prejuízo (€)" : "Lucro/Prejuízo (R$)"}
                   </th>
                   <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[100px]">
                     Lucro (%)
@@ -380,51 +396,53 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
                       </td>
                       <td className="px-3 py-2">
                         <div className="relative flex items-center">
-                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">€</span>
+                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">{isGlobal ? "€" : "R$"}</span>
                           <Input
                             type="number"
                             step="0.01"
                             value={op.valor_vendas || ''}
                             onChange={(e) => updateCell(index, 'valor_vendas', parseFloat(e.target.value) || 0)}
-                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full pl-7"
+                            className={`bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full ${isGlobal ? 'pl-7' : 'pl-9'}`}
                             placeholder="0.00"
                           />
                         </div>
                       </td>
                       <td className="px-3 py-2">
                         <div className="relative flex items-center">
-                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">€</span>
+                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">{isGlobal ? "€" : "R$"}</span>
                           <Input
                             type="number"
                             step="0.01"
                             value={op.adspend || ''}
                             onChange={(e) => updateCell(index, 'adspend', parseFloat(e.target.value) || 0)}
-                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full pl-7"
+                            className={`bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full ${isGlobal ? 'pl-7' : 'pl-9'}`}
                             placeholder="0.00"
                           />
                         </div>
                       </td>
                       <td className="px-3 py-2">
                         <div className="relative flex items-center">
-                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">$</span>
+                          <span className="absolute left-3 text-[rgba(255,255,255,0.5)] text-sm pointer-events-none">{isGlobal ? "$" : "R$"}</span>
                           <Input
                             type="number"
                             step="0.01"
                             value={op.cogs || ''}
                             onChange={(e) => updateCell(index, 'cogs', parseFloat(e.target.value) || 0)}
-                            className="bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full pl-7"
+                            className={`bg-transparent border-[rgba(255,255,255,0.1)] text-[#F5F5F7] h-9 text-right w-full ${isGlobal ? 'pl-7' : 'pl-9'}`}
                             placeholder="0.00"
                           />
                         </div>
                       </td>
-                      <td className="px-3 py-2">
-                        <div className="h-9 flex items-center justify-end text-[rgba(245,245,247,0.52)] text-sm">
-                          {USD_TO_EUR}
-                        </div>
-                      </td>
+                      {isGlobal && (
+                        <td className="px-3 py-2">
+                          <div className="h-9 flex items-center justify-end text-[rgba(245,245,247,0.52)] text-sm">
+                            {USD_TO_EUR}
+                          </div>
+                        </td>
+                      )}
                       <td className="px-3 py-2">
                         <div className={`h-9 flex items-center justify-end font-medium px-2 rounded-md text-sm ${isPositive ? 'text-emerald-400 bg-emerald-500/15' : 'text-red-400 bg-red-500/15'}`}>
-                          {formatEuro(profit)}
+                          {formatMoney(profit)}
                         </div>
                       </td>
                       <td className="px-3 py-2">
@@ -455,27 +473,29 @@ export function OperationsSpreadsheet({ clientId, initialData }: OperationsSprea
                   </td>
                   <td className="px-3 py-3">
                     <div className="h-9 flex items-center justify-end text-emerald-400 font-bold">
-                      {formatEuro(totals.valor_vendas)}
+                      {formatMoney(totals.valor_vendas)}
                     </div>
                   </td>
                   <td className="px-3 py-3">
                     <div className="h-9 flex items-center justify-end text-amber-400 font-bold">
-                      {formatEuro(totals.adspend)}
+                      {formatMoney(totals.adspend)}
                     </div>
                   </td>
                   <td className="px-3 py-3">
                     <div className="h-9 flex items-center justify-end text-red-400 font-bold">
-                      {formatDollar(totals.cogs)}
+                      {isGlobal ? formatDollar(totals.cogs) : formatBRL(totals.cogs)}
                     </div>
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="h-9 flex items-center justify-end text-[rgba(245,245,247,0.52)]">
-                      {USD_TO_EUR}
-                    </div>
-                  </td>
+                  {isGlobal && (
+                    <td className="px-3 py-3">
+                      <div className="h-9 flex items-center justify-end text-[rgba(245,245,247,0.52)]">
+                        {USD_TO_EUR}
+                      </div>
+                    </td>
+                  )}
                   <td className="px-3 py-3">
                     <div className={`h-9 flex items-center justify-end font-bold px-2 rounded-md ${totals.profit >= 0 ? 'text-emerald-400 bg-emerald-500/15' : 'text-red-400 bg-red-500/15'}`}>
-                      {formatEuro(totals.profit)}
+                      {formatMoney(totals.profit)}
                     </div>
                   </td>
                   <td className="px-3 py-3">

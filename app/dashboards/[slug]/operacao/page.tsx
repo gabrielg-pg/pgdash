@@ -47,10 +47,9 @@ export default async function OperacaoPage({ params }: { params: Promise<{ slug:
     redirect("/login")
   }
 
-  // Check if client has SCALE_GLOBAL plan
-  if (client.plan !== "SCALE_GLOBAL") {
-    redirect(`/dashboards/${slug}`)
-  }
+  // Scale Global usa a versão internacional (€ com Câmbio + COGS em $)
+  // Demais planos usam a versão nacional (R$ sem Câmbio)
+  const isGlobal = client.plan === "SCALE_GLOBAL"
 
   // Get current month data for initial load
   const currentMonth = new Date().getMonth() + 1 // 1-12
@@ -69,6 +68,7 @@ export default async function OperacaoPage({ params }: { params: Promise<{ slug:
       <OperationsSpreadsheet 
         clientId={client.id} 
         initialData={operations as any[]} 
+        isGlobal={isGlobal}
       />
     </div>
   )
