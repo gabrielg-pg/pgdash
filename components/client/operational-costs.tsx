@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,32 +27,62 @@ const CURRENCIES = [
   { code: "GBP", symbol: "£" },
 ]
 
-interface OperationalCostsProps {
-  clientId: string
+interface InitialCost {
+  id: string
+  service: string
+  currency: string
+  value: number
 }
 
-export function OperationalCosts({ clientId }: OperationalCostsProps) {
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth)
-  const [costs, setCosts] = useState<CostItem[]>([])
-  const [saveMessage, setSaveMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
+interface OperationalCostsProps {
+  clientId: string
+  initialData?: InitialCost[]
+  initialMonth?: number
+  initialYear?: number
+  isGlobal?: boolean
+}
 
-  // Load data from Supabase
+const mapCosts = (data: InitialCost[]): CostItem[] =>
+  data.map((item) => ({
+    id: item.id,
+    service: item.service,
+    currency: item.currency,
+    value: String(item.value),
+  }))
+
+export function OperationalCosts({
+  clientId,
+  initialData = [],
+  initialMonth,
+  initialYear,
+  isGlobal = true,
+}: OperationalCostsProps) {
+  const currentYear = initialYear ?? new Date().getFullYear()
+  // initialMonth chega em 1-12; o estado interno usa 0-11
+  const startMonth = initialMonth ? initialMonth - 1 : new Date().getMonth()
+  // Moeda padrão de novas linhas: € (global) ou R$ (nacional)
+  const defaultCurrency = isGlobal ? "EUR" : "BRL"
+
+  const [selectedMonth, setSelectedMonth] = useState(startMonth)
+  const [costs, setCosts] = useState<CostItem[]>(mapCosts(initialData))
+  const [saveMessage, setSaveMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  // Evita refazer o fetch no primeiro render (dados já vêm do servidor)
+  const isFirstRender = useRef(true)
+
+  // Recarrega os dados apenas quando o usuário troca de mês
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
     async function loadCosts() {
       setIsLoading(true)
       try {
         const data = await getOperationalCosts(clientId, selectedMonth + 1, currentYear)
-        const formattedCosts = data.map((item: { id: string; service: string; currency: string; value: number }) => ({
-          id: item.id,
-          service: item.service,
-          currency: item.currency,
-          value: String(item.value)
-        }))
-        setCosts(formattedCosts)
+        setCosts(mapCosts(data as InitialCost[]))
       } catch (error) {
         console.error("Error loading costs:", error)
         setCosts([])
@@ -68,7 +98,7 @@ export function OperationalCosts({ clientId }: OperationalCostsProps) {
     const newItem: CostItem = {
       id: `new_${Date.now()}`,
       service: "",
-      currency: "EUR",
+      currency: defaultCurrency,
       value: ""
     }
     setCosts([...costs, newItem])
@@ -103,13 +133,7 @@ export function OperationalCosts({ clientId }: OperationalCostsProps) {
         setSaveMessage("Salvo!")
         // Reload data to get updated IDs
         const data = await getOperationalCosts(clientId, selectedMonth + 1, currentYear)
-        const formattedCosts = data.map((item: { id: string; service: string; currency: string; value: number }) => ({
-          id: item.id,
-          service: item.service,
-          currency: item.currency,
-          value: String(item.value)
-        }))
-        setCosts(formattedCosts)
+        setCosts(mapCosts(data as InitialCost[]))
       } else {
         setSaveMessage("Erro!")
       }

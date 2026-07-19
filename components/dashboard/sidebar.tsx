@@ -61,6 +61,7 @@ function isScaleGlobal(plan: string) {
 const getClientNavItems = (slug: string, plan: string) => {
   const operacaoItem = { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: Cog }
   const estruturasItem = { href: `/dashboards/${slug}/estruturas`, label: "Estruturas", icon: Layers }
+  const custosItem = { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign }
 
   const baseItems = [
     { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
@@ -75,15 +76,14 @@ const getClientNavItems = (slug: string, plan: string) => {
   const scaleGlobalOnlyItems = [
     { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw },
     { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail },
-    { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign },
   ]
 
   if (isScaleGlobal(plan)) {
-    return [...baseItems, operacaoItem, estruturasItem, ...scaleGlobalOnlyItems]
+    return [...baseItems, operacaoItem, estruturasItem, ...scaleGlobalOnlyItems, custosItem]
   }
 
-  // Planos nacionais: Operação (R$) + Estruturas
-  return [...baseItems, operacaoItem, estruturasItem]
+  // Planos nacionais: Operação (R$) + Estruturas + Custos Operacionais (R$)
+  return [...baseItems, operacaoItem, estruturasItem, custosItem]
 }
 
 const adminNavItems = [

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { sql } from "@/lib/db"
 import { OperationalCosts } from "@/components/client/operational-costs"
+import { getOperationalCosts } from "@/app/actions/operational-costs"
 
 export const dynamic = 'force-dynamic'
 
@@ -30,10 +31,13 @@ export default async function CustosPage({ params }: { params: Promise<{ slug: s
     redirect("/login")
   }
 
-  // Check if client has SCALE_GLOBAL plan
-  if (client.plan !== "SCALE_GLOBAL") {
-    redirect(`/dashboards/${slug}`)
-  }
+  // Scale Global usa moeda internacional (€ padrão); planos nacionais usam R$
+  const isGlobal = client.plan === "SCALE_GLOBAL"
+
+  // Busca os dados do mês atual no servidor para renderizar sem spinner
+  const currentMonth = new Date().getMonth() + 1 // 1-12
+  const currentYear = new Date().getFullYear()
+  const initialCosts = await getOperationalCosts(client.id, currentMonth, currentYear)
 
   return (
     <div className="space-y-6 pt-6 px-4 md:px-6 lg:px-8 pb-8">
@@ -44,7 +48,13 @@ export default async function CustosPage({ params }: { params: Promise<{ slug: s
         </p>
       </div>
 
-      <OperationalCosts clientId={client.id} />
+      <OperationalCosts 
+        clientId={client.id} 
+        initialData={initialCosts as any[]}
+        initialMonth={currentMonth}
+        initialYear={currentYear}
+        isGlobal={isGlobal}
+      />
     </div>
   )
 }
