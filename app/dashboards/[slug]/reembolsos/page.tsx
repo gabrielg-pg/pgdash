@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { sql } from "@/lib/db"
 import { RefundsManagement } from "@/components/client/refunds-management"
+import { getRefunds } from "@/app/actions/refunds"
 
 export const dynamic = 'force-dynamic'
 
@@ -18,14 +19,17 @@ async function getClientBySlug(slug: string) {
 
 export default async function ReembolsosPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const session = await getSession()
+
+  // Sessão e cliente não dependem um do outro: busca em paralelo.
+  const [session, client] = await Promise.all([
+    getSession(),
+    getClientBySlug(slug),
+  ])
   
   if (!session) {
     redirect("/login")
   }
 
-  const client = await getClientBySlug(slug)
-  
   if (!client) {
     redirect("/login")
   }
@@ -34,6 +38,9 @@ export default async function ReembolsosPage({ params }: { params: Promise<{ slu
   if (client.plan !== "SCALE_GLOBAL") {
     redirect(`/dashboards/${slug}`)
   }
+
+  // Busca os reembolsos no servidor para renderizar sem spinner no cliente.
+  const initialRefunds = await getRefunds(client.id)
 
   return (
     <div className="space-y-6 pt-6 px-4 md:px-6 lg:px-8 pb-8">
@@ -44,7 +51,7 @@ export default async function ReembolsosPage({ params }: { params: Promise<{ slu
         </p>
       </div>
 
-      <RefundsManagement clientId={client.id} />
+      <RefundsManagement clientId={client.id} initialData={initialRefunds as any[]} />
     </div>
   )
 }

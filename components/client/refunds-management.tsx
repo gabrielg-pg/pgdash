@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -75,47 +75,34 @@ const estadosOptions = [
 
 interface RefundsManagementProps {
   clientId: string
+  initialData?: (RefundData & { id: string })[]
 }
 
-export function RefundsManagement({ clientId }: RefundsManagementProps) {
+const mapRefunds = (data: (RefundData & { id: string })[]): Refund[] =>
+  data.map((r) => ({
+    id: r.id,
+    idReembolso: r.id_reembolso || "",
+    dataCompra: r.data_compra || "",
+    nomeCliente: r.nome_cliente || "",
+    email: r.email || "",
+    numEncomenda: r.num_encomenda || "",
+    nomePeca: r.nome_peca || "",
+    tamanho: r.tamanho || "",
+    precoPago: r.preco_pago || "",
+    motivoDevolucao: r.motivo_devolucao || "",
+    tipoResolucao: r.tipo_resolucao || "",
+    valorReembolsado: r.valor_reembolsado || "",
+    estado: r.estado || "Pendente",
+  }))
+
+export function RefundsManagement({ clientId, initialData = [] }: RefundsManagementProps) {
   const currentMonth = new Date().getMonth()
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
-  const [refunds, setRefunds] = useState<Refund[]>([])
+  // Dados já vêm prontos do servidor: renderiza imediatamente, sem spinner.
+  const [refunds, setRefunds] = useState<Refund[]>(() => mapRefunds(initialData))
   const [saveMessage, setSaveMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-
-  // Load from database on mount
-  useEffect(() => {
-    const loadRefunds = async () => {
-      setIsLoading(true)
-      try {
-        const data = await getRefunds(clientId)
-        const mappedRefunds: Refund[] = data.map((r: RefundData & { id: string }) => ({
-          id: r.id,
-          idReembolso: r.id_reembolso || "",
-          dataCompra: r.data_compra || "",
-          nomeCliente: r.nome_cliente || "",
-          email: r.email || "",
-          numEncomenda: r.num_encomenda || "",
-          nomePeca: r.nome_peca || "",
-          tamanho: r.tamanho || "",
-          precoPago: r.preco_pago || "",
-          motivoDevolucao: r.motivo_devolucao || "",
-          tipoResolucao: r.tipo_resolucao || "",
-          valorReembolsado: r.valor_reembolsado || "",
-          estado: r.estado || "Pendente"
-        }))
-        setRefunds(mappedRefunds)
-      } catch (error) {
-        console.error("Error loading refunds:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    loadRefunds()
-  }, [clientId])
 
   // Save to database
   const saveToDatabase = () => {
@@ -143,22 +130,7 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
         setTimeout(() => setSaveMessage(""), 2000)
         // Reload to get the new IDs
         const data = await getRefunds(clientId)
-        const mappedRefunds: Refund[] = data.map((r: RefundData & { id: string }) => ({
-          id: r.id,
-          idReembolso: r.id_reembolso || "",
-          dataCompra: r.data_compra || "",
-          nomeCliente: r.nome_cliente || "",
-          email: r.email || "",
-          numEncomenda: r.num_encomenda || "",
-          nomePeca: r.nome_peca || "",
-          tamanho: r.tamanho || "",
-          precoPago: r.preco_pago || "",
-          motivoDevolucao: r.motivo_devolucao || "",
-          tipoResolucao: r.tipo_resolucao || "",
-          valorReembolsado: r.valor_reembolsado || "",
-          estado: r.estado || "Pendente"
-        }))
-        setRefunds(mappedRefunds)
+        setRefunds(mapRefunds(data as (RefundData & { id: string })[]))
       } else {
         setSaveMessage("Erro!")
         setTimeout(() => setSaveMessage(""), 2000)
@@ -243,14 +215,6 @@ export function RefundsManagement({ clientId }: RefundsManagementProps) {
   const pendentes = filteredRefunds.filter(r => r.estado === "Pendente").length
   const resolvidos = filteredRefunds.filter(r => r.estado === "Resolvido").length
   const negados = filteredRefunds.filter(r => r.estado === "Negado").length
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-180px)]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#A855F7]" />
-      </div>
-    )
-  }
 
   return (
     <div className="flex flex-col gap-4 h-[calc(100vh-180px)]">
