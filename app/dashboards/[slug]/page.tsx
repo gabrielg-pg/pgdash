@@ -3,7 +3,6 @@ import { getSession } from "@/lib/auth"
 import { sql } from "@/lib/db"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { WelcomeBanner } from "@/components/client/welcome-banner"
-import { ScaleGlobalDashboard } from "@/components/client/scale-global-dashboard"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Key, Bell, FolderOpen, TrendingUp, Clock, Activity, Store, Sparkles, Calendar } from "lucide-react"
@@ -55,31 +54,8 @@ export default async function DashboardSlugPage({
   }
 
   const data = await getDashboardData(client.id)
-  
-  // Check if client has SCALE_GLOBAL plan
-  const isScaleGlobal = client.plan === "SCALE_GLOBAL"
-  
-  // For SCALE_GLOBAL clients, render the special dashboard
-  if (isScaleGlobal) {
-    return (
-      <div className="min-h-screen bg-[#07070A]">
-        <div className="p-4 md:p-6 lg:p-8">
-          <ScaleGlobalDashboard 
-            clientId={client.id}
-            clientSlug={client.slug}
-            clientName={client.name}
-            userName={session.name.split(" ")[0]}
-            clientPlan={client.plan}
-            clientStatus={client.status}
-            clientStartDate={client.created_at}
-          />
-        </div>
-      </div>
-    )
-  }
 
-  // Regular dashboard for other plans
-
+  // Todos os planos (incluindo Scale Global) usam a mesma dashboard de entrada.
   const infoCards = [
     {
       label: "Loja",
