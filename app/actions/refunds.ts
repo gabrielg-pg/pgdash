@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { sql } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 
 export interface RefundData {
@@ -21,134 +21,102 @@ export interface RefundData {
 }
 
 export async function getRefunds(clientSlug: string) {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from("refunds")
-    .select("*")
-    .eq("client_slug", clientSlug)
-    .order("created_at", { ascending: false })
-  
-  if (error) {
+  try {
+    const data = await sql`
+      SELECT * FROM refunds
+      WHERE client_slug = ${clientSlug}
+      ORDER BY created_at DESC
+    `
+    return data || []
+  } catch (error) {
     console.error("Error fetching refunds:", error)
     return []
   }
-  
-  return data || []
 }
 
 export async function createRefund(refund: RefundData) {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from("refunds")
-    .insert({
-      client_slug: refund.client_slug,
-      id_reembolso: refund.id_reembolso,
-      data_compra: refund.data_compra,
-      nome_cliente: refund.nome_cliente,
-      email: refund.email,
-      num_encomenda: refund.num_encomenda,
-      nome_peca: refund.nome_peca,
-      tamanho: refund.tamanho,
-      preco_pago: refund.preco_pago,
-      motivo_devolucao: refund.motivo_devolucao,
-      tipo_resolucao: refund.tipo_resolucao,
-      valor_reembolsado: refund.valor_reembolsado,
-      estado: refund.estado
-    })
-    .select()
-    .single()
-  
-  if (error) {
+  try {
+    const rows = await sql`
+      INSERT INTO refunds (
+        client_slug, id_reembolso, data_compra, nome_cliente, email,
+        num_encomenda, nome_peca, tamanho, preco_pago, motivo_devolucao,
+        tipo_resolucao, valor_reembolsado, estado
+      ) VALUES (
+        ${refund.client_slug}, ${refund.id_reembolso}, ${refund.data_compra}, ${refund.nome_cliente}, ${refund.email},
+        ${refund.num_encomenda}, ${refund.nome_peca}, ${refund.tamanho}, ${refund.preco_pago}, ${refund.motivo_devolucao},
+        ${refund.tipo_resolucao}, ${refund.valor_reembolsado}, ${refund.estado}
+      )
+      RETURNING *
+    `
+    revalidatePath(`/dashboards/${refund.client_slug}/reembolsos`)
+    return { data: rows[0] }
+  } catch (error) {
     console.error("Error creating refund:", error)
-    return { error: error.message }
+    return { error: (error as Error).message }
   }
-  
-  revalidatePath(`/dashboards/${refund.client_slug}/reembolsos`)
-  return { data }
 }
 
 export async function updateRefund(id: string, updates: Partial<RefundData>) {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from("refunds")
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", id)
-    .select()
-    .single()
-  
-  if (error) {
+  try {
+    const rows = await sql`
+      UPDATE refunds SET
+        id_reembolso = COALESCE(${updates.id_reembolso ?? null}, id_reembolso),
+        data_compra = COALESCE(${updates.data_compra ?? null}, data_compra),
+        nome_cliente = COALESCE(${updates.nome_cliente ?? null}, nome_cliente),
+        email = COALESCE(${updates.email ?? null}, email),
+        num_encomenda = COALESCE(${updates.num_encomenda ?? null}, num_encomenda),
+        nome_peca = COALESCE(${updates.nome_peca ?? null}, nome_peca),
+        tamanho = COALESCE(${updates.tamanho ?? null}, tamanho),
+        preco_pago = COALESCE(${updates.preco_pago ?? null}, preco_pago),
+        motivo_devolucao = COALESCE(${updates.motivo_devolucao ?? null}, motivo_devolucao),
+        tipo_resolucao = COALESCE(${updates.tipo_resolucao ?? null}, tipo_resolucao),
+        valor_reembolsado = COALESCE(${updates.valor_reembolsado ?? null}, valor_reembolsado),
+        estado = COALESCE(${updates.estado ?? null}, estado),
+        updated_at = now()
+      WHERE id = ${id}
+      RETURNING *
+    `
+    return { data: rows[0] }
+  } catch (error) {
     console.error("Error updating refund:", error)
-    return { error: error.message }
+    return { error: (error as Error).message }
   }
-  
-  return { data }
 }
 
 export async function deleteRefund(id: string, clientSlug: string) {
-  const supabase = await createClient()
-  
-  const { error } = await supabase
-    .from("refunds")
-    .delete()
-    .eq("id", id)
-  
-  if (error) {
+  try {
+    await sql`DELETE FROM refunds WHERE id = ${id}`
+    revalidatePath(`/dashboards/${clientSlug}/reembolsos`)
+    return { success: true }
+  } catch (error) {
     console.error("Error deleting refund:", error)
-    return { error: error.message }
+    return { error: (error as Error).message }
   }
-  
-  revalidatePath(`/dashboards/${clientSlug}/reembolsos`)
-  return { success: true }
 }
 
 export async function saveAllRefunds(clientSlug: string, refunds: RefundData[]) {
-  const supabase = await createClient()
-  
-  // First, delete all existing refunds for this client
-  const { error: deleteError } = await supabase
-    .from("refunds")
-    .delete()
-    .eq("client_slug", clientSlug)
-  
-  if (deleteError) {
-    console.error("Error deleting old refunds:", deleteError)
-    return { error: deleteError.message }
-  }
-  
-  // Then insert all new refunds
-  if (refunds.length > 0) {
-    const refundsToInsert = refunds.map(r => ({
-      client_slug: clientSlug,
-      id_reembolso: r.id_reembolso,
-      data_compra: r.data_compra,
-      nome_cliente: r.nome_cliente,
-      email: r.email,
-      num_encomenda: r.num_encomenda,
-      nome_peca: r.nome_peca,
-      tamanho: r.tamanho,
-      preco_pago: r.preco_pago,
-      motivo_devolucao: r.motivo_devolucao,
-      tipo_resolucao: r.tipo_resolucao,
-      valor_reembolsado: r.valor_reembolsado,
-      estado: r.estado
-    }))
-    
-    const { error: insertError } = await supabase
-      .from("refunds")
-      .insert(refundsToInsert)
-    
-    if (insertError) {
-      console.error("Error inserting refunds:", insertError)
-      return { error: insertError.message }
+  try {
+    // Substitui todos os reembolsos do cliente: apaga e reinsere.
+    await sql`DELETE FROM refunds WHERE client_slug = ${clientSlug}`
+
+    for (const r of refunds) {
+      await sql`
+        INSERT INTO refunds (
+          client_slug, id_reembolso, data_compra, nome_cliente, email,
+          num_encomenda, nome_peca, tamanho, preco_pago, motivo_devolucao,
+          tipo_resolucao, valor_reembolsado, estado
+        ) VALUES (
+          ${clientSlug}, ${r.id_reembolso}, ${r.data_compra}, ${r.nome_cliente}, ${r.email},
+          ${r.num_encomenda}, ${r.nome_peca}, ${r.tamanho}, ${r.preco_pago}, ${r.motivo_devolucao},
+          ${r.tipo_resolucao}, ${r.valor_reembolsado}, ${r.estado}
+        )
+      `
     }
+
+    revalidatePath(`/dashboards/${clientSlug}/reembolsos`)
+    return { success: true }
+  } catch (error) {
+    console.error("Error saving refunds:", error)
+    return { error: (error as Error).message }
   }
-  
-  revalidatePath(`/dashboards/${clientSlug}/reembolsos`)
-  return { success: true }
 }

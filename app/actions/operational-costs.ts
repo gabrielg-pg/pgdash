@@ -1,103 +1,70 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { sql } from "@/lib/db"
 
 export async function getOperationalCosts(clientId: string, month: number, year: number) {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from('operational_costs')
-    .select('*')
-    .eq('client_slug', clientId)
-    .eq('month', month)
-    .eq('year', year)
-    .order('created_at', { ascending: true })
-
-  if (error) {
+  try {
+    const data = await sql`
+      SELECT * FROM operational_costs
+      WHERE client_slug = ${clientId} AND month = ${month} AND year = ${year}
+      ORDER BY created_at ASC
+    `
+    return data || []
+  } catch (error) {
     console.error("Error fetching operational costs:", error)
     return []
   }
-
-  return data || []
 }
 
 // Busca TODOS os custos do ano numa única query.
 // Permite trocar de mês no cliente sem novas chamadas de rede.
 export async function getOperationalCostsForYear(clientId: string, year: number) {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('operational_costs')
-    .select('*')
-    .eq('client_slug', clientId)
-    .eq('year', year)
-    .order('created_at', { ascending: true })
-
-  if (error) {
+  try {
+    const data = await sql`
+      SELECT * FROM operational_costs
+      WHERE client_slug = ${clientId} AND year = ${year}
+      ORDER BY created_at ASC
+    `
+    return data || []
+  } catch (error) {
     console.error("Error fetching operational costs for year:", error)
     return []
   }
-
-  return data || []
 }
 
 export async function saveOperationalCosts(
-  clientId: string, 
-  month: number, 
+  clientId: string,
+  month: number,
   year: number,
   costs: { id?: string; service: string; currency: string; value: number }[]
 ) {
-  const supabase = await createClient()
+  try {
+    // Substitui os custos do mês: apaga os antigos e insere os novos.
+    await sql`
+      DELETE FROM operational_costs
+      WHERE client_slug = ${clientId} AND month = ${month} AND year = ${year}
+    `
 
-  // First, delete existing costs for this client/month/year
-  const { error: deleteError } = await supabase
-    .from('operational_costs')
-    .delete()
-    .eq('client_slug', clientId)
-    .eq('month', month)
-    .eq('year', year)
-
-  if (deleteError) {
-    console.error("Error deleting old costs:", deleteError)
-    return { success: false, error: deleteError.message }
-  }
-
-  // Then insert new costs
-  if (costs.length > 0) {
-    const costsToInsert = costs.map(cost => ({
-      client_slug: clientId,
-      month,
-      year,
-      service: cost.service,
-      currency: cost.currency,
-      value: cost.value
-    }))
-
-    const { error: insertError } = await supabase
-      .from('operational_costs')
-      .insert(costsToInsert)
-
-    if (insertError) {
-      console.error("Error inserting costs:", insertError)
-      return { success: false, error: insertError.message }
+    for (const cost of costs) {
+      await sql`
+        INSERT INTO operational_costs (client_slug, month, year, service, currency, value)
+        VALUES (${clientId}, ${month}, ${year}, ${cost.service}, ${cost.currency}, ${cost.value})
+      `
     }
-  }
 
-  return { success: true }
+    return { success: true }
+  } catch (error) {
+    console.error("Error saving costs:", error)
+    return { success: false, error: (error as Error).message }
+  }
 }
 
 export async function deleteOperationalCost(costId: string) {
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('operational_costs')
-    .delete()
-    .eq('id', costId)
-
-  if (error) {
+  try {
+    await sql`DELETE FROM operational_costs WHERE id = ${costId}`
+    return { success: true }
+  } catch (error) {
     console.error("Error deleting cost:", error)
-    return { success: false, error: error.message }
+    return { success: false, error: (error as Error).message }
   }
-
-  return { success: true }
 }
