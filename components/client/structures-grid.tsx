@@ -11,12 +11,12 @@ function getProAdsOffer(plan: string) {
   if (plan === "SCALE_GLOBAL") {
     return {
       price: "R$1.697,00/mês",
-      link: "https://payfast.greenn.com.br/ksv9fu2/offer/a6DAG2",
+      link: "https://payfast.greenn.com.br/redirect/301766",
     }
   }
   return {
     price: "R$1.297,00/mês",
-    link: "https://payfast.greenn.com.br/ksv9fu2/offer/9zWlqv",
+    link: "https://payfast.greenn.com.br/redirect/301765",
   }
 }
 
@@ -40,7 +40,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
         "Sua loja já vende. A pergunta é: quem comprou uma vez, volta a comprar? Estruturamos seu funil completo de e-mail com Klaviyo — recuperação de carrinho, boas-vindas, pós-compra, recompra. Lojas com esse funil ativo aumentam até 33% no faturamento, sem gastar um real a mais em tráfego.",
       price: "R$997,00",
       buttonLabel: "Quero isso na minha operação",
-      link: "https://payfast.greenn.com.br/yfm4mz5",
+      link: "https://payfast.greenn.com.br/redirect/301763",
     },
     {
       title: "Vértebra Sazonal™",
@@ -49,7 +49,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
         "Black Friday, Natal, Dia das Mães — as datas que mais vendem são as que mais exigem identidade visual atualizada. Preparamos a loja inteira pra essas janelas, com antecedência, sem você precisar lembrar disso sozinho.",
       price: "R$697,00",
       buttonLabel: "Quero minha loja pronta pra sazonalidade",
-      link: "https://payfast.greenn.com.br/5c3chaj",
+      link: "https://payfast.greenn.com.br/redirect/301767",
     },
   ]
 
