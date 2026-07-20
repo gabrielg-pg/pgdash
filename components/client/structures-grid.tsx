@@ -47,9 +47,9 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
       subtitle: "Estrutura visual para datas de alto volume",
       description:
         "Black Friday, Natal, Dia das Mães — as datas que mais vendem são as que mais exigem identidade visual atualizada. Preparamos a loja inteira pra essas janelas, com antecedência, sem você precisar lembrar disso sozinho.",
-      price: "R$697,90",
+      price: "R$697,00",
       buttonLabel: "Quero minha loja pronta pra sazonalidade",
-      link: "https://payfast.greenn.com.br/5cjbbfe",
+      link: "https://payfast.greenn.com.br/5c3chaj",
     },
   ]
 
