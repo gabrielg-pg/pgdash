@@ -42,6 +42,11 @@ const MONTHS = [
 const YEAR = 2026
 const USD_TO_EUR = 0.92
 
+// Taxas de gateway aplicadas apenas nos planos nacionais (Brasil):
+// Yampi cobra 2,5% e Appmax 4,99% sobre cada venda.
+const YAMPI_RATE = 0.025
+const APPMAX_RATE = 0.0499
+
 function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month + 1, 0).getDate()
 }
@@ -222,11 +227,16 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
   // Moeda principal: € (global) ou R$ (nacional)
   const formatMoney = isGlobal ? formatEuro : formatBRL
 
+  // Taxas de gateway (só planos nacionais): calculadas sobre o valor de vendas do dia.
+  const calculateYampi = (op: Operation) => (op.valor_vendas || 0) * YAMPI_RATE
+  const calculateAppmax = (op: Operation) => (op.valor_vendas || 0) * APPMAX_RATE
+
   const calculateProfit = (op: Operation) => {
     // Global: COGS em $ convertido para € pelo câmbio.
-    // Nacional: tudo em R$, sem conversão.
+    // Nacional: tudo em R$, sem conversão, descontando Yampi (2,5%) e Appmax (4,99%).
     const cogsValue = isGlobal ? (op.cogs || 0) * USD_TO_EUR : (op.cogs || 0)
-    return (op.valor_vendas || 0) - (op.adspend || 0) - cogsValue
+    const gatewayFees = isGlobal ? 0 : calculateYampi(op) + calculateAppmax(op)
+    return (op.valor_vendas || 0) - (op.adspend || 0) - cogsValue - gatewayFees
   }
 
   const calculateProfitPercent = (op: Operation) => {
@@ -254,7 +264,10 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
   const totalValorVendas = safeSum(operations, 'valor_vendas')
   const totalAdspend = safeSum(operations, 'adspend')
   const totalCogs = safeSum(operations, 'cogs')
-  const totalProfit = totalValorVendas - totalAdspend - (isGlobal ? totalCogs * USD_TO_EUR : totalCogs)
+  // Taxas de gateway acumuladas no mês (só planos nacionais).
+  const totalYampi = isGlobal ? 0 : totalValorVendas * YAMPI_RATE
+  const totalAppmax = isGlobal ? 0 : totalValorVendas * APPMAX_RATE
+  const totalProfit = totalValorVendas - totalAdspend - (isGlobal ? totalCogs * USD_TO_EUR : totalCogs) - totalYampi - totalAppmax
   
   const opsWithSales = operations.filter(op => Number(op.valor_vendas) > 0)
   const opsWithAdspend = operations.filter(op => Number(op.adspend) > 0)
@@ -369,6 +382,16 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
                       Câmbio
                     </th>
                   )}
+                  {!isGlobal && (
+                    <>
+                      <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
+                        Yampi (2,5%)
+                      </th>
+                      <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[120px]">
+                        Appmax (4,99%)
+                      </th>
+                    </>
+                  )}
                   <th className="px-3 py-3 text-center text-xs font-medium text-[rgba(245,245,247,0.52)] uppercase tracking-wider w-[130px]">
                     {isGlobal ? "Lucro/Prejuízo (€)" : "Lucro/Prejuízo (R$)"}
                   </th>
@@ -452,6 +475,20 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
                           </div>
                         </td>
                       )}
+                      {!isGlobal && (
+                        <>
+                          <td className="px-3 py-2">
+                            <div className="h-9 flex items-center justify-end text-amber-400 text-sm">
+                              {formatMoney(calculateYampi(op))}
+                            </div>
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="h-9 flex items-center justify-end text-amber-400 text-sm">
+                              {formatMoney(calculateAppmax(op))}
+                            </div>
+                          </td>
+                        </>
+                      )}
                       <td className="px-3 py-2">
                         <div className={`h-9 flex items-center justify-end font-medium px-2 rounded-md text-sm ${isPositive ? 'text-emerald-400 bg-emerald-500/15' : 'text-red-400 bg-red-500/15'}`}>
                           {formatMoney(profit)}
@@ -504,6 +541,20 @@ export function OperationsSpreadsheet({ clientId, initialData, isGlobal = true }
                         {USD_TO_EUR}
                       </div>
                     </td>
+                  )}
+                  {!isGlobal && (
+                    <>
+                      <td className="px-3 py-3">
+                        <div className="h-9 flex items-center justify-end text-amber-400 font-bold">
+                          {formatMoney(totalYampi)}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="h-9 flex items-center justify-end text-amber-400 font-bold">
+                          {formatMoney(totalAppmax)}
+                        </div>
+                      </td>
+                    </>
                   )}
                   <td className="px-3 py-3">
                     <div className={`h-9 flex items-center justify-end font-bold px-2 rounded-md ${totals.profit >= 0 ? 'text-emerald-400 bg-emerald-500/15' : 'text-red-400 bg-red-500/15'}`}>
