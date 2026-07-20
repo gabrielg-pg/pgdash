@@ -39,6 +39,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
       description:
         "Sua loja já vende. A pergunta é: quem comprou uma vez, volta a comprar? Estruturamos seu funil completo de e-mail com Klaviyo — recuperação de carrinho, boas-vindas, pós-compra, recompra. Lojas com esse funil ativo aumentam até 33% no faturamento, sem gastar um real a mais em tráfego.",
       price: "R$997,00",
+      badge: "Pagamento único",
       buttonLabel: "Quero isso na minha operação",
       link: "https://payfast.greenn.com.br/redirect/301763",
     },
@@ -48,6 +49,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
       description:
         "Black Friday, Natal, Dia das Mães — as datas que mais vendem são as que mais exigem identidade visual atualizada. Preparamos a loja inteira pra essas janelas, com antecedência, sem você precisar lembrar disso sozinho.",
       price: "R$697,00",
+      badge: "Pagamento único",
       buttonLabel: "Quero minha loja pronta pra sazonalidade",
       link: "https://payfast.greenn.com.br/redirect/301767",
     },
@@ -70,7 +72,14 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
               {structure.description}
             </p>
 
-            <p className="text-2xl font-bold text-[#F5F5F7] mt-6">{structure.price}</p>
+            <div className="flex items-center gap-3 mt-6">
+              <p className="text-2xl font-bold text-[#F5F5F7]">{structure.price}</p>
+              {structure.badge && (
+                <span className="inline-flex items-center rounded-full border border-[#A855F7]/30 bg-[#A855F7]/10 px-3 py-1 text-xs font-medium text-[#C084FC]">
+                  {structure.badge}
+                </span>
+              )}
+            </div>
 
             <Button
               asChild
