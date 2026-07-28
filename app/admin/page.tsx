@@ -12,6 +12,8 @@ async function getAdminStats() {
     sql`SELECT COUNT(*) as total, 
         COUNT(*) FILTER (WHERE status = 'ACTIVE') as active,
         COUNT(*) FILTER (WHERE plan = 'SCALE') as scale,
+        COUNT(*) FILTER (WHERE plan = 'SCALE_VERTEBRA') as scale_vertebra,
+        COUNT(*) FILTER (WHERE plan = 'SCALE_GLOBAL') as scale_global,
         COUNT(*) FILTER (WHERE plan = 'PRO') as pro,
         COUNT(*) FILTER (WHERE plan = 'START') as start
         FROM clients`,
@@ -39,6 +41,16 @@ const planColors: Record<string, string> = {
   START: "bg-[rgba(245,245,247,0.1)] text-[rgba(245,245,247,0.72)] border-[rgba(255,255,255,0.1)]",
   PRO: "bg-[rgba(168,85,247,0.15)] text-[#A855F7] border-[rgba(168,85,247,0.3)]",
   SCALE: "bg-gradient-to-r from-[rgba(168,85,247,0.2)] to-[rgba(124,58,237,0.15)] text-[#A855F7] border-[rgba(168,85,247,0.4)]",
+  SCALE_VERTEBRA: "bg-[rgba(168,85,247,0.2)] text-[#A855F7] border-[rgba(168,85,247,0.4)]",
+  SCALE_GLOBAL: "bg-[rgba(245,158,11,0.2)] text-[#F59E0B] border-[rgba(245,158,11,0.4)]",
+}
+
+const planLabels: Record<string, string> = {
+  START: "Start",
+  PRO: "Pro",
+  SCALE: "Scale",
+  SCALE_VERTEBRA: "Scale Vértebra",
+  SCALE_GLOBAL: "Scale Global",
 }
 
 const statusColors: Record<string, string> = {
@@ -175,7 +187,7 @@ export default async function AdminDashboardPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`${planColors[client.plan]} rounded-full`}>
-                            {client.plan}
+                            {planLabels[client.plan] || client.plan}
                           </Badge>
                           <Badge variant="outline" className={`${statusColors[client.status]} rounded-full`}>
                             {client.status}
@@ -205,8 +217,40 @@ export default async function AdminDashboardPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#F59E0B]" />
+                      <span className="text-[rgba(245,245,247,0.72)]">Scale Global</span>
+                    </div>
+                    <span className="font-bold text-[#F5F5F7]">{stats.clients?.scale_global || 0}</span>
+                  </div>
+                  <div className="h-2 bg-[#141424] rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-[#F59E0B] rounded-full transition-all duration-500"
+                      style={{ width: `${(Number(stats.clients?.scale_global) / Number(stats.clients?.total || 1)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#A855F7]" />
+                      <span className="text-[rgba(245,245,247,0.72)]">Scale Vértebra</span>
+                    </div>
+                    <span className="font-bold text-[#F5F5F7]">{stats.clients?.scale_vertebra || 0}</span>
+                  </div>
+                  <div className="h-2 bg-[#141424] rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-[#A855F7] rounded-full transition-all duration-500"
+                      style={{ width: `${(Number(stats.clients?.scale_vertebra) / Number(stats.clients?.total || 1)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-gradient-to-r from-[#A855F7] to-[#7C3AED]" />
-                      <span className="text-[rgba(245,245,247,0.72)]">Scale</span>
+                      <span className="text-[rgba(245,245,247,0.72)]">Scale (legado)</span>
                     </div>
                     <span className="font-bold text-[#F5F5F7]">{stats.clients?.scale || 0}</span>
                   </div>
