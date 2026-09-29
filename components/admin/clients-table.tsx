@@ -54,6 +54,16 @@ const planColors: Record<string, string> = {
   START: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
   PRO: "bg-purple-500/20 text-purple-400 border-purple-500/30",
   SCALE: "bg-gradient-to-r from-purple-500/20 to-fuchsia-500/20 text-purple-400 border-purple-500/30",
+  SCALE_VERTEBRA: "bg-[rgba(168,85,247,0.2)] text-[#A855F7] border-[rgba(168,85,247,0.4)]",
+  SCALE_GLOBAL: "bg-[rgba(245,158,11,0.2)] text-[#F59E0B] border-[rgba(245,158,11,0.4)]",
+}
+
+const planLabels: Record<string, string> = {
+  START: "Start",
+  PRO: "Pro",
+  SCALE: "Scale",
+  SCALE_VERTEBRA: "Scale Vértebra",
+  SCALE_GLOBAL: "Scale Global",
 }
 
 const statusColors: Record<string, string> = {

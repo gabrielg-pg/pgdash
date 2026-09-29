@@ -124,63 +124,15 @@ export function WeeklyReportsView({ reports }: WeeklyReportsViewProps) {
 
           {selectedReport && (
             <div className="space-y-6 mt-4">
-              {/* Resumo da Semana */}
-              <div className="space-y-2">
+              {/* Mensagem */}
+              <div className="space-y-2 pb-2">
                 <h4 className="text-sm font-semibold text-[#A855F7] uppercase tracking-wide">
-                  Resumo da Semana
+                  Mensagem
                 </h4>
                 <p className="text-[rgba(245,245,247,0.85)] whitespace-pre-wrap leading-relaxed">
                   {selectedReport.summary}
                 </p>
               </div>
-
-              {/* O que foi feito */}
-              {selectedReport.actions_taken && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-[#A855F7] uppercase tracking-wide">
-                    O que foi feito
-                  </h4>
-                  <p className="text-[rgba(245,245,247,0.85)] whitespace-pre-wrap leading-relaxed">
-                    {selectedReport.actions_taken}
-                  </p>
-                </div>
-              )}
-
-              {/* Leitura dos Dados */}
-              {selectedReport.data_analysis && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-[#A855F7] uppercase tracking-wide">
-                    Leitura dos Dados
-                  </h4>
-                  <p className="text-[rgba(245,245,247,0.85)] whitespace-pre-wrap leading-relaxed">
-                    {selectedReport.data_analysis}
-                  </p>
-                </div>
-              )}
-
-              {/* Decisoes Tomadas */}
-              {selectedReport.decisions_made && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-[#A855F7] uppercase tracking-wide">
-                    Decisões Tomadas
-                  </h4>
-                  <p className="text-[rgba(245,245,247,0.85)] whitespace-pre-wrap leading-relaxed">
-                    {selectedReport.decisions_made}
-                  </p>
-                </div>
-              )}
-
-              {/* Orientacao para Proxima Semana */}
-              {selectedReport.next_week_guidance && (
-                <div className="space-y-2 pb-2">
-                  <h4 className="text-sm font-semibold text-[#A855F7] uppercase tracking-wide">
-                    Orientação para Próxima Semana
-                  </h4>
-                  <p className="text-[rgba(245,245,247,0.85)] whitespace-pre-wrap leading-relaxed">
-                    {selectedReport.next_week_guidance}
-                  </p>
-                </div>
-              )}
             </div>
           )}
         </DialogContent>

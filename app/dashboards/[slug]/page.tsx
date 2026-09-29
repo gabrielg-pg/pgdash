@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 import { sql } from "@/lib/db"
 import { DashboardHeader } from "@/components/dashboard/header"
+import { WelcomeBanner } from "@/components/client/welcome-banner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Key, Bell, FolderOpen, TrendingUp, Clock, Activity, Store, Sparkles, Calendar } from "lucide-react"
@@ -54,6 +55,7 @@ export default async function DashboardSlugPage({
 
   const data = await getDashboardData(client.id)
 
+  // Todos os planos (incluindo Scale Global) usam a mesma dashboard de entrada.
   const infoCards = [
     {
       label: "Loja",
@@ -103,12 +105,34 @@ export default async function DashboardSlugPage({
 
   return (
     <div className="min-h-screen bg-[#07070A]">
+      {/* Welcome Banner */}
+      <div className="px-4 md:px-6 lg:px-8 pt-4 md:pt-6 lg:pt-8">
+        <WelcomeBanner />
+      </div>
+
       <div className="p-4 md:p-6 lg:p-8">
         <DashboardHeader
           title={`Bem-vindo, ${session.name.split(" ")[0]}!`}
           subtitle={client.name}
           user={session}
         />
+      </div>
+
+      {/* Welcome Video */}
+      <div className="px-4 md:px-6 lg:px-8 pb-6 flex justify-center">
+        <div className="w-full max-w-[700px] aspect-video rounded-xl overflow-hidden border border-[rgba(255,255,255,0.06)]">
+          <iframe
+            title="vimeo-player"
+            src="https://player.vimeo.com/video/1180982090?h=751e8cf86c"
+            width="100%"
+            height="100%"
+            frameBorder="0"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+            allowFullScreen
+            className="w-full h-full"
+          />
+        </div>
       </div>
 
       <div className="px-4 md:px-6 lg:px-8 pb-8 space-y-6">

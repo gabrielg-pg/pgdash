@@ -52,15 +52,39 @@ interface SidebarProps {
   hasWeeklyReports?: boolean
 }
 
-const getClientNavItems = (slug: string) => [
-  { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
-  { href: `/dashboards/${slug}/mapa`, label: "Mapa da Operação", icon: Map },
-  { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
-  { href: `/dashboards/${slug}/acessos`, label: "Acessos", icon: Key },
-  { href: `/dashboards/${slug}/avisos`, label: "Avisos", icon: Bell },
-  { href: `/dashboards/${slug}/materiais`, label: "Materiais", icon: FolderOpen },
-  { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
-]
+import { TableIcon, RotateCcw, Mail, DollarSign, Cog, Layers } from "lucide-react"
+
+function isScaleGlobal(plan: string) {
+  return plan === "SCALE_GLOBAL"
+}
+
+const getClientNavItems = (slug: string, plan: string) => {
+  const operacaoItem = { href: `/dashboards/${slug}/operacao`, label: "Operação", icon: Cog }
+  const estruturasItem = { href: `/dashboards/${slug}/estruturas`, label: "Estruturas", icon: Layers }
+  const custosItem = { href: `/dashboards/${slug}/custos`, label: "Custos Operacionais", icon: DollarSign }
+  const reembolsosItem = { href: `/dashboards/${slug}/reembolsos`, label: "Reembolsos", icon: RotateCcw }
+
+  const baseItems = [
+    { href: `/dashboards/${slug}`, label: "Dashboard", icon: LayoutDashboard },
+    { href: `/dashboards/${slug}/leitura-semanal`, label: "Leitura Semanal", icon: FileText },
+    { href: `/dashboards/${slug}/acessos`, label: "Acessos", icon: Key },
+    { href: `/dashboards/${slug}/avisos`, label: "Avisos", icon: Bell },
+    { href: `/dashboards/${slug}/materiais`, label: "Materiais", icon: FolderOpen },
+    { href: `/dashboards/${slug}/perfil`, label: "Perfil", icon: User },
+  ]
+
+  // Itens exclusivos do Scale Global
+  const scaleGlobalOnlyItems = [
+    { href: `/dashboards/${slug}/emails`, label: "E-mail & Instagram", icon: Mail },
+  ]
+
+  if (isScaleGlobal(plan)) {
+    return [...baseItems, operacaoItem, estruturasItem, reembolsosItem, ...scaleGlobalOnlyItems, custosItem]
+  }
+
+  // Planos nacionais: Operação (R$) + Estruturas + Reembolsos (R$) + Custos Operacionais (R$)
+  return [...baseItems, operacaoItem, estruturasItem, reembolsosItem, custosItem]
+}
 
 const adminNavItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -92,7 +116,8 @@ export function DashboardSidebar({ user, slug, hasWeeklyReports }: SidebarProps)
   const { collapsed, setCollapsed, isMobileOpen, setMobileOpen } = useSidebar()
 
   const clientSlug = slug || user.client?.slug || ""
-  const allClientNavItems = getClientNavItems(clientSlug)
+  const clientPlan = user.client?.plan || ""
+  const allClientNavItems = getClientNavItems(clientSlug, clientPlan)
   
   // Filter out "Leitura Semanal" if client has no weekly reports
   const clientNavItems = user.role === "CLIENTE" && !hasWeeklyReports

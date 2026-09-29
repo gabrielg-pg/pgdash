@@ -1,25 +1,11 @@
 import React from "react"
 import { redirect, notFound } from "next/navigation"
 import { getSession } from "@/lib/auth"
-import { sql } from "@/lib/db"
+import { sql, getClientBySlugCached } from "@/lib/db"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import Link from "next/link"
 
 export const dynamic = 'force-dynamic'
-
-async function getClientBySlug(slug: string) {
-  const result = await sql`
-    SELECT * FROM clients WHERE slug = ${slug}
-  `
-  return result[0] || null
-}
-
-async function clientHasWeeklyReports(clientId: string) {
-  const result = await sql`
-    SELECT COUNT(*) as count FROM weekly_reports WHERE client_id = ${clientId}
-  `
-  return parseInt(result[0]?.count || '0') > 0
-}
 
 export default async function DashboardSlugLayout({
   children,
@@ -29,14 +15,16 @@ export default async function DashboardSlugLayout({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const session = await getSession()
+
+  // Sessão e cliente são independentes: busca em paralelo.
+  const [session, client] = await Promise.all([
+    getSession(),
+    getClientBySlugCached(slug),
+  ])
 
   if (!session) {
     redirect("/login")
   }
-
-  // Get the client by slug
-  const client = await getClientBySlug(slug)
 
   if (!client) {
     notFound()
@@ -70,7 +58,10 @@ export default async function DashboardSlugLayout({
   }
 
   // Check if client has weekly reports
-  const hasWeeklyReports = await clientHasWeeklyReports(client.id)
+  const weeklyReportsResult = await sql`
+    SELECT COUNT(*) as count FROM weekly_reports WHERE client_id = ${client.id}
+  `
+  const hasWeeklyReports = parseInt(weeklyReportsResult[0]?.count || '0') > 0
 
   // Create enhanced session with current client data
   const enhancedSession = {

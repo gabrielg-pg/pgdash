@@ -94,19 +94,11 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
     report_date: new Date().toISOString().split("T")[0],
     status: "estavel",
     summary: "",
-    actions_taken: "",
-    data_analysis: "",
-    decisions_made: "",
-    next_week_guidance: "",
   })
   const [editForm, setEditForm] = useState({
     report_date: "",
     status: "",
     summary: "",
-    actions_taken: "",
-    data_analysis: "",
-    decisions_made: "",
-    next_week_guidance: "",
   })
 
   const filteredReports = reports.filter(
@@ -144,10 +136,6 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
           report_date: new Date().toISOString().split("T")[0],
           status: "estavel",
           summary: "",
-          actions_taken: "",
-          data_analysis: "",
-          decisions_made: "",
-          next_week_guidance: "",
         })
         toast.success("Relatório enviado")
       } else {
@@ -166,10 +154,6 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
       report_date: report.report_date.split("T")[0],
       status: report.status,
       summary: report.summary,
-      actions_taken: report.actions_taken || "",
-      data_analysis: report.data_analysis || "",
-      decisions_made: report.decisions_made || "",
-      next_week_guidance: report.next_week_guidance || "",
     })
   }
 
@@ -275,53 +259,13 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Resumo da Semana</Label>
+                <Label className="text-zinc-300">Mensagem</Label>
                 <Textarea
                   value={newReport.summary}
                   onChange={(e) => setNewReport({ ...newReport, summary: e.target.value })}
-                  placeholder="Texto curto explicando o foco e o porquê das decisões..."
-                  rows={3}
+                  placeholder="Escreva a mensagem para o cliente..."
+                  rows={8}
                   required
-                  className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-300">O que foi feito</Label>
-                <Textarea
-                  value={newReport.actions_taken}
-                  onChange={(e) => setNewReport({ ...newReport, actions_taken: e.target.value })}
-                  placeholder="Lista objetiva: ajustes, testes, manutenção..."
-                  rows={3}
-                  className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-300">Leitura dos Dados</Label>
-                <Textarea
-                  value={newReport.data_analysis}
-                  onChange={(e) => setNewReport({ ...newReport, data_analysis: e.target.value })}
-                  placeholder="Números da semana com contexto..."
-                  rows={3}
-                  className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-300">Decisões Tomadas</Label>
-                <Textarea
-                  value={newReport.decisions_made}
-                  onChange={(e) => setNewReport({ ...newReport, decisions_made: e.target.value })}
-                  placeholder="O que foi mantido, evitado ou adiado..."
-                  rows={3}
-                  className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-300">Orientação para Próxima Semana</Label>
-                <Textarea
-                  value={newReport.next_week_guidance}
-                  onChange={(e) => setNewReport({ ...newReport, next_week_guidance: e.target.value })}
-                  placeholder="Próximos passos e expectativas..."
-                  rows={3}
                   className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
                 />
               </div>
@@ -338,7 +282,7 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
           <TableRow className="border-zinc-800 hover:bg-zinc-900/50">
             <TableHead className="text-zinc-400">Data</TableHead>
             <TableHead className="text-zinc-400">Cliente</TableHead>
-            <TableHead className="text-zinc-400">Resumo</TableHead>
+            <TableHead className="text-zinc-400">Mensagem</TableHead>
             <TableHead className="text-zinc-400 text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -427,37 +371,9 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
           {viewReport && (
             <div className="space-y-6 mt-4">
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-purple-400">Resumo da Semana</h4>
+                <h4 className="text-sm font-medium text-purple-400">Mensagem</h4>
                 <p className="text-zinc-300 whitespace-pre-wrap">{viewReport.summary}</p>
               </div>
-              
-              {viewReport.actions_taken && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-purple-400">O que foi feito</h4>
-                  <p className="text-zinc-300 whitespace-pre-wrap">{viewReport.actions_taken}</p>
-                </div>
-              )}
-              
-              {viewReport.data_analysis && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-purple-400">Leitura dos Dados</h4>
-                  <p className="text-zinc-300 whitespace-pre-wrap">{viewReport.data_analysis}</p>
-                </div>
-              )}
-              
-              {viewReport.decisions_made && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-purple-400">Decisões Tomadas</h4>
-                  <p className="text-zinc-300 whitespace-pre-wrap">{viewReport.decisions_made}</p>
-                </div>
-              )}
-              
-              {viewReport.next_week_guidance && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-purple-400">Orientação para Próxima Semana</h4>
-                  <p className="text-zinc-300 whitespace-pre-wrap">{viewReport.next_week_guidance}</p>
-                </div>
-              )}
             </div>
           )}
         </DialogContent>
@@ -484,48 +400,12 @@ export function WeeklyReportsTable({ reports: initialReports, clients }: WeeklyR
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-zinc-300">Resumo da Semana</Label>
+              <Label className="text-zinc-300">Mensagem</Label>
               <Textarea
                 value={editForm.summary}
                 onChange={(e) => setEditForm({ ...editForm, summary: e.target.value })}
-                rows={3}
+                rows={8}
                 required
-                className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-zinc-300">O que foi feito</Label>
-              <Textarea
-                value={editForm.actions_taken}
-                onChange={(e) => setEditForm({ ...editForm, actions_taken: e.target.value })}
-                rows={3}
-                className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Leitura dos Dados</Label>
-              <Textarea
-                value={editForm.data_analysis}
-                onChange={(e) => setEditForm({ ...editForm, data_analysis: e.target.value })}
-                rows={3}
-                className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Decisões Tomadas</Label>
-              <Textarea
-                value={editForm.decisions_made}
-                onChange={(e) => setEditForm({ ...editForm, decisions_made: e.target.value })}
-                rows={3}
-                className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Orientação para Próxima Semana</Label>
-              <Textarea
-                value={editForm.next_week_guidance}
-                onChange={(e) => setEditForm({ ...editForm, next_week_guidance: e.target.value })}
-                rows={3}
                 className="bg-zinc-900/50 border-zinc-700 text-white resize-none focus:border-purple-500"
               />
             </div>
