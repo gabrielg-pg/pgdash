@@ -24,7 +24,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
       description:
         "Sua loja está pronta. O tráfego é o que decide se ela vende ou fica parada. Nossa equipe assume a gestão de campanhas — orçamento, criativos, otimização — enquanto você acompanha o resultado, não o processo.",
       price: proAds.price,
-      buttonLabel: "Quero isso na minha operação",
+      buttonLabel: "Conversar com Alisson no WhatsApp",
       link: proAds.link,
     },
     {
@@ -34,7 +34,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
         "Sua loja já vende. A pergunta é: quem comprou uma vez, volta a comprar? Estruturamos seu funil completo de e-mail com Klaviyo — recuperação de carrinho, boas-vindas, pós-compra, recompra. Lojas com esse funil ativo aumentam até 33% no faturamento, sem gastar um real a mais em tráfego.",
       price: "R$997,00",
       badge: "Pagamento único",
-      buttonLabel: "Quero isso na minha operação",
+      buttonLabel: "Conversar com Alisson no WhatsApp",
       link: "https://wa.link/apljdm",
     },
     {
@@ -44,7 +44,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
         "O e-mail pode ficar na caixa de promoções. O SMS chega direto no bolso do cliente — com taxa de abertura acima de 90%. Estruturamos seu funil de SMS com recuperação de carrinho, confirmação de pedido, pós-compra e campanhas de recompra, pra transformar visitantes indecisos em vendas.",
       price: "R$697,00",
       badge: "Pagamento único",
-      buttonLabel: "Quero o funil de SMS na minha operação",
+      buttonLabel: "Conversar com Alisson no WhatsApp",
       link: "https://wa.link/nt2xsw",
     },
     {
@@ -54,7 +54,7 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
         "Black Friday, Natal, Dia das Mães — as datas que mais vendem são as que mais exigem identidade visual atualizada. Preparamos a loja inteira pra essas janelas, com antecedência, sem você precisar lembrar disso sozinho.",
       price: "R$697,00",
       badge: "Pagamento único",
-      buttonLabel: "Quero minha loja pronta pra sazonalidade",
+      buttonLabel: "Conversar com Alisson no WhatsApp",
       link: "https://wa.link/03apfe",
     },
   ]
