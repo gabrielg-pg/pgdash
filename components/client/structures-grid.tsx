@@ -8,15 +8,9 @@ interface StructuresGridProps {
 // Pro ADS pricing depends on the client's plan.
 // Only SCALE_GLOBAL gets the higher tier; all other plans use the standard tier.
 function getProAdsOffer(plan: string) {
-  if (plan === "SCALE_GLOBAL") {
-    return {
-      price: "R$1.697,00/mês",
-      link: "https://payfast.greenn.com.br/redirect/301766",
-    }
-  }
   return {
-    price: "R$1.297,00/mês",
-    link: "https://payfast.greenn.com.br/redirect/301765",
+    price: plan === "SCALE_GLOBAL" ? "R$1.697,00/mês" : "R$1.297,00/mês",
+    link: "https://wa.link/pm5rqe",
   }
 }
 
@@ -41,7 +35,17 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
       price: "R$997,00",
       badge: "Pagamento único",
       buttonLabel: "Quero isso na minha operação",
-      link: "https://payfast.greenn.com.br/redirect/301763",
+      link: "https://wa.link/apljdm",
+    },
+    {
+      title: "Vértebra SMS™",
+      subtitle: "Setup completo de funil de SMS",
+      description:
+        "O e-mail pode ficar na caixa de promoções. O SMS chega direto no bolso do cliente — com taxa de abertura acima de 90%. Estruturamos seu funil de SMS com recuperação de carrinho, confirmação de pedido, pós-compra e campanhas de recompra, pra transformar visitantes indecisos em vendas.",
+      price: "R$697,00",
+      badge: "Pagamento único",
+      buttonLabel: "Quero o funil de SMS na minha operação",
+      link: "https://wa.link/nt2xsw",
     },
     {
       title: "Vértebra Sazonal™",
@@ -51,12 +55,12 @@ export function StructuresGrid({ plan }: StructuresGridProps) {
       price: "R$697,00",
       badge: "Pagamento único",
       buttonLabel: "Quero minha loja pronta pra sazonalidade",
-      link: "https://payfast.greenn.com.br/redirect/301767",
+      link: "https://wa.link/03apfe",
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
       {structures.map((structure) => (
         <Card
           key={structure.title}
